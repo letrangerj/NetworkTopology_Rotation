@@ -1,0 +1,42 @@
+Phase 2 - Repertoire Calculation Summary
+Run timestamp: 2025-09-30 15:26:46.072996
+
+Input Data:
+  - Synthetase entries: 21240
+  - Receptor entries: 42190
+  - Validated pairing pairs: 26
+  - Expanded receptor-pyoverdine mappings: 1149
+
+Strain Counts:
+  - Total unique strains: 2808
+  - Strains with production (non-zero): 1938
+  - Strains with receptors: 2800
+  - Strains with usable pyoverdines: 1805
+
+Quality Checks:
+  - Strains with >1 production group: 588
+  - Receptor groups excluded (not validated): 6149
+  - Strains with receptors but no usable pyoverdines: 995
+
+WARNING - Strains with multiple production groups:
+   Burkholderia_cepacia_ATCC_39356
+   Burkholderia_gladioli_ATCC_10248
+   Burkholderia_plantarii_strain_PG1
+   Burkholderia_pyrrocinia_Lyc2
+   Burkholderia_thailandensis_E264
+   CRBC_G0224
+   CRBC_G0235
+   CRBC_G0280
+   CRBC_G0290
+   CRBC_G0368
+
+Excluded receptor groups (sample):
+   86, 5961, 2274, 4777, 4657, 535, 4761, 3784, 1785, 4174, 5128, 433, 808, 2278, 5137, 425, 4835, 4091, 4595, 2704
+
+Strains with receptors but no usable pyoverdines (sample):
+   GCF_000013605.1, GCF_000013625.1, GCF_000013865.1, GCF_000015505.1, GCF_000015565.1, GCF_000015725.1, GCF_000016345.1, GCF_000019785.1, GCF_000020045.1, GCF_000067205.1
+
+Next Steps:
+  - Run 03_functional_group_collapse.R to group strains by canonical signatures
+  - Classify functional groups by strategy (Nonproducer/Single/Multi-receptor producer)
+
