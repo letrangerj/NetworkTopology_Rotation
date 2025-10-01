@@ -1,0 +1,21 @@
+Conservative Producer Category Counts
+Total strains: 2808
+Total producers (raw syn groups): 1938
+Total producers (validated syn groups): 1584
+
+Category 1: Strains with multiple syn groups, at least two validated (multi-producer conservative)
+  Count: 347
+  Percentage of total strains: 12.36%
+
+Category 2: Strains with multiple syn groups, but only one or zero validated (single or non-validated producer)
+  Count: 241
+  Percentage of total strains: 8.58%
+
+Category 3: Strains with only unvalidated syn groups (not included as producer nodes in conservative network)
+  Count: 354
+  Percentage of total strains: 12.61%
+
+Notes:
+- Category 1 and 2 are subsets of strains with n_production_groups > 1
+- Category 3 includes strains with n_production_groups > 0 but no validated groups
+- Conservative network will include producers from Category 1 and validated parts of Category 2

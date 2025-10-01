@@ -91,6 +91,10 @@ cat("Expanded to", nrow(receptor_to_pyoverdine), "receptor-pyoverdine mappings\n
 saveRDS(receptor_to_pyoverdine, "data/interim/receptor_to_pyoverdine.rds")
 cat("Saved receptor->pyoverdine lookup\n\n")
 
+# Derive list of validated pyoverdine (synthetase) groups from pairing_result
+valid_pyovs <- sort(unique(unlist(valid_pairs$pyoverdine_group)))
+cat("Validated pyoverdine groups (from pairing_result):", length(valid_pyovs), "\n\n")
+
 # ---- Build production repertoire per strain ----
 cat("Calculating production repertoires per strain...\n")
 
@@ -171,14 +175,41 @@ strain_repertoires <- strain_repertoires %>%
         unique()
       return(sort(matched))
     }),
-    n_usable_pyoverdines = map_int(usable_pyoverdines, length)
+    n_usable_pyoverdines = map_int(usable_pyoverdines, length),
+    # Annotate which production groups are validated by pairing_result
+    validated_production_groups = map(production_groups, function(pg) {
+      pg_valid <- intersect(pg, valid_pyovs)
+      if (length(pg_valid) == 0) integer(0) else sort(pg_valid)
+    }),
+    n_validated_production_groups = map_int(validated_production_groups, length),
+    is_validated_producer = n_validated_production_groups > 0,
+    is_validated_multi_producer = n_validated_production_groups > 1
   )
+
+# Ensure docs dir exists before writing audit CSV
+dir.create("docs/phase_02", recursive = TRUE, showWarnings = FALSE)
+
+# Save an audit CSV for review (production groups vs validated production groups)
+write.csv(
+  data.frame(
+    strainName = strain_repertoires$strainName,
+    production_groups = sapply(strain_repertoires$production_groups, function(x) if (length(x)==0) "" else paste(x, collapse = ",")),
+    validated_production_groups = sapply(strain_repertoires$validated_production_groups, function(x) if (length(x)==0) "" else paste(x, collapse=",")),
+    n_production_groups = strain_repertoires$n_production_groups,
+    n_validated_production_groups = strain_repertoires$n_validated_production_groups,
+    stringsAsFactors = FALSE
+  ),
+  "docs/phase_02/production_validation_audit.csv",
+  row.names = FALSE
+)
 
 # ---- Validation checks ----
 cat("\nRunning validation checks...\n")
 
-# 1. Strains with multiple production groups
-cat("  - Strains with >1 production group:", sum(strain_repertoires$n_production_groups > 1), "\n")
+# 1. Strains with multiple production groups (full set) and validated-only set
+cat("  - Strains with >1 production group (all synthetases):", sum(strain_repertoires$n_production_groups > 1), "\n")
+cat("  - Strains with >=1 validated production group:", sum(strain_repertoires$n_validated_production_groups > 0), "\n")
+cat("  - Strains with >1 validated production group:", sum(strain_repertoires$n_validated_production_groups > 1), "\n")
 
 # 2. Receptors excluded (not in validated pairs)
 all_receptor_groups <- unique(unlist(strain_repertoires$receptor_groups))
@@ -188,7 +219,7 @@ cat("  - Total unique receptor groups:", length(all_receptor_groups), "\n")
 cat("  - Receptor groups in validated pairs:", length(validated_receptor_groups), "\n")
 cat("  - Receptor groups excluded (not validated):", length(excluded_receptors), "\n")
 
-# 3. Strains with receptors but no usable pyoverdines
+# 3. Strains with receptors but no usable pyoverdines (via validated mapping)
 strains_receptors_no_usable <- strain_repertoires %>%
   filter(n_receptor_groups > 0 & n_usable_pyoverdines == 0)
 cat("  - Strains with receptors but NO usable pyoverdines:", nrow(strains_receptors_no_usable), "\n")
@@ -232,6 +263,10 @@ report <- c(
   paste("  - Strains with production (non-zero):", sum(strain_repertoires$n_production_groups > 0)),
   paste("  - Strains with receptors:", sum(strain_repertoires$n_receptor_groups > 0)),
   paste("  - Strains with usable pyoverdines:", sum(strain_repertoires$n_usable_pyoverdines > 0)),
+  "",
+  "Validated Production Summary:",
+  paste("  - Strains with validated production (>=1):", sum(strain_repertoires$n_validated_production_groups > 0)),
+  paste("  - Strains with >1 validated production group:", sum(strain_repertoires$n_validated_production_groups > 1)),
   "",
   "Quality Checks:",
   paste("  - Strains with >1 production group:", sum(strain_repertoires$n_production_groups > 1)),

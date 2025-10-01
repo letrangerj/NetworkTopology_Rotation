@@ -1,5 +1,5 @@
 Phase 2 - Repertoire Calculation Summary
-Run timestamp: 2025-09-30 15:26:46.072996
+Run timestamp: 2025-10-01 18:27:45.625663
 
 Input Data:
   - Synthetase entries: 21240
@@ -12,6 +12,10 @@ Strain Counts:
   - Strains with production (non-zero): 1938
   - Strains with receptors: 2800
   - Strains with usable pyoverdines: 1805
+
+Validated Production Summary:
+  - Strains with validated production (>=1): 1584
+  - Strains with >1 validated production group: 347
 
 Quality Checks:
   - Strains with >1 production group: 588
