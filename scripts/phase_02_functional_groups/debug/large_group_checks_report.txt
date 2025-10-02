@@ -1,0 +1,8 @@
+Large group inspection report
+Group ID: 67
+Group size: 700
+Representative strain: GCF_000193595.2
+Representative validated production groups: 22
+Representative usable pyoverdines: 22, 23
+Number of receptor groups mapping to these pyovs: 8
+

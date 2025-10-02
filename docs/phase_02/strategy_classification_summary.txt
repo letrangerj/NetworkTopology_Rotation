@@ -1,0 +1,40 @@
+Phase 2 - Step 4: Strategy Classification Summary (Conservative)
+Run timestamp: 2025-10-02 20:38:18.01498
+
+Classification Rules Applied:
+  1. Multi-producer: >1 validated production group
+  2. Single-receptor producer: 1 production group, 1 usable pyoverdine
+  3. Multi-receptor producer: 1 production group, >1 usable pyoverdine
+  4. Nonproducer: 0 production groups, >0 usable pyoverdines
+  5. Producer-only: >0 production groups, 0 usable pyoverdines
+  6. Unconnected: 0 production groups, 0 usable pyoverdines
+
+Overall Statistics:
+  - Total functional groups classified: 177
+  - Total strains represented: 1809
+  - Average group size: 10.22
+
+Strategy Distribution (Groups):
+  - Multi-producer           :  33 groups ( 18.6%)
+  - Multi-receptor producer  :  95 groups ( 53.7%)
+  - Nonproducer              :  43 groups ( 24.3%)
+  - Producer-only (no utilization):   4 groups (  2.3%)
+  - Single-receptor producer :   2 groups (  1.1%)
+
+Strategy Distribution (Strains):
+  - Multi-producer           :  347 strains ( 19.2%)
+  - Multi-receptor producer  : 1221 strains ( 67.5%)
+  - Nonproducer              :  225 strains ( 12.4%)
+  - Producer-only (no utilization):    4 strains (  0.2%)
+  - Single-receptor producer :   12 strains (  0.7%)
+
+Network-Ready Categories:
+  - Producer groups (all types): 130
+  - Nonproducer groups: 43
+  - Other/Unconnected groups: 4
+
+Next Steps:
+  - Proceed to Phase 3: Network Construction
+  - Use functional_groups_classified_conservative.rds for bipartite network building
+  - Validate network topology against biological expectations
+

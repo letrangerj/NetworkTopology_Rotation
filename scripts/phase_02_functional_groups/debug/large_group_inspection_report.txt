@@ -1,0 +1,5 @@
+Large Group Inspection Report
+Group ID: 67 
+Strain Count: 700 
+Production Groups: 1 
+Usable Pyoverdines: 2 

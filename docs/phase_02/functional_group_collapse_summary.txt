@@ -1,0 +1,29 @@
+Phase 2 - Step 3: Functional Group Collapse Summary (Conservative)
+Run timestamp: 2025-10-02 18:46:21.476708
+
+Input Data:
+  - Total strains analyzed: 1809
+  - Total strains in dataset: 2808
+
+Conservative Network Criteria:
+  - Strains with validated production OR usable pyoverdines:
+  - Validated producers included: 1584
+  - Strains with usable pyoverdines included: 1805
+
+Collapse Results:
+  - Total functional groups created: 177
+  - Total strains collapsed: 1809
+  - Average collapse ratio: 10.22 strains per group
+  - Maximum group size: 700
+  - Minimum group size: 1
+
+Functional Group Composition:
+  - Groups with validated production: 134
+  - Groups without production (pure consumers): 43
+  - Groups with usable pyoverdines: 173
+  - Groups without usable pyoverdines: 4
+
+Next Steps:
+  - Run 04_strategy_classification.R to classify functional groups by strategy
+  - Validate group assignments and metadata consistency
+
