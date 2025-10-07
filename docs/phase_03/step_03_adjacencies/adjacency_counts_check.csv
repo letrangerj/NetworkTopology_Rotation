@@ -1,0 +1,9 @@
+metric,value
+prod_fg_edges_count,175
+prod_fg_mat_count,175
+util_fg_edges_count,2238
+util_fg_mat_count,2238
+prod_str_edges_count,1948
+prod_str_mat_count,1948
+util_str_edges_count,14198
+util_str_mat_count,14198

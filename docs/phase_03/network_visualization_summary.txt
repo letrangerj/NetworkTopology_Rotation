@@ -1,0 +1,28 @@
+Phase 3 Network Visualization Summary
+Generated: 2025-10-07 15:24:56.091699
+
+Files Created:
+Network Visualizations:
+  - figures/network/fg_network_bipartite.pdf/png
+  - figures/network/str_network_bipartite.pdf/png
+
+Distribution Plots:
+  - figures/distributions/fg_strategy_distribution.pdf/png
+  - figures/distributions/fg_degree_histograms.pdf/png
+  - figures/distributions/fg_degree_density.pdf/png
+
+Color Scheme:
+  - Single-receptor producers: green (#4DAF4A)
+  - Multi-receptor producers: yellow (#FFFF33)
+  - Multi-producers: orange (#FF7F00)
+  - Nonproducers: red (#E41A1C)
+  - Pyoverdine nodes: blue (#377EB8)
+
+Node Shapes:
+  - Functional groups/strains: circles
+  - Pyoverdine groups: hexagons
+
+Edge Semantics:
+  - Production: FG/Strain → Pyoverdine
+  - Utilization: Pyoverdine → FG/Strain
+  - Edge colors match source node colors

@@ -1,0 +1,19 @@
+Step 2: Pyoverdine index mapping created at 2025-10-07 12:45:10.653679
+
+Provenance and mapping choices (important)
+- Source: This mapping was derived from the expanded `receptor_to_pyoverdine` lookup produced in Phase 2. That lookup expands the curated pairing results such that every synthetase (pyoverdine) group ID that appears in any validated lock–key row is represented explicitly.
+- Granularity decision (93 vs 26):
+  - The generated node set contains 93 distinct pyoverdine identifiers because the pairing table is structured as ~26 lock–key rows where each row may include multiple synthetase IDs. The Step 2 script expanded those list-columns and created one pyoverdine node per validated synthetase ID, producing 93 pyov nodes (a more granular representation).
+  - If you prefer a strict "one node per lock–key pair" representation (exactly 26 pyov nodes), we must collapse synthetase IDs by pairing row (i.e., map each synthetase id to its `pair_id` so every pairing row becomes a single pyov node). Both representations are defensible: the 93-node mapping preserves within-pair synthetase diversity; the 26-node collapse matches a one-node-per-lock-key convention often used for direct comparison with literature.
+- Recommendation: keep both variants for sensitivity analysis. Use the 26-node collapsed mapping for direct comparisons to papers that report one node per validated pair, and use the 93-node mapping to preserve synthetase-level detail. Document which mapping is used for each downstream analysis.
+
+Source of validated pyovs: receptor_to_pyoverdine
+Validated pyov count (n): 93
+Output RDS: data/interim/nodes_pyoverdines_conservative.rds
+Output CSV: data/interim/nodes_pyoverdines_conservative.csv
+
+Active flags:
+  - active_production: 93 TRUE, 0 NA
+  - active_utilization: 93 TRUE, 0 NA
+
+Notes: fg/strain counts per pyov persisted where available.

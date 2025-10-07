@@ -1,0 +1,52 @@
+Phase 03 - Step 3: Network adjacency construction summary
+
+NOTE — pyoverdine node mapping (93 vs 26)
+- Important: the pyoverdine node set used to build the adjacencies in this run contains 93 distinct pyoverdine identifiers. This is because the validated pairing table (pairing_result / receptor_to_pyoverdine) is structured as ~26 lock–key rows, but each row can include multiple synthetase (pyoverdine) group IDs. The Step 2 script expanded those list-columns and created one pyoverdine node per validated synthetase ID, producing 93 pyov nodes (a more granular representation).
+- If you require the strict "one node per lock–key pair (exactly 26 pyov nodes)" representation, we must collapse synthetase IDs by pairing row (pair_id → matrix_index). That variant is available as an alternate mapping (collapse-by-pair_id) and can be produced on demand; keeping both variants (93-node and 26-node) is recommended for a sensitivity comparison.
+- The rest of this file reports network construction results for the current (93-node) pyov mapping. See docs/phase_03/step_02_pyov_index/pyov_index_mapping_summary.txt for provenance and the exact mapping produced in Step 2.
+
+Files created by Step 2 and Step 3 (where to find them)
+- Step 2 (pyov index mapping):
+  - data/interim/nodes_pyoverdines_conservative.rds
+  - data/interim/nodes_pyoverdines_conservative.csv
+  - docs/phase_03/step_02_pyov_index/pyov_index_mapping_summary.txt
+- Step 1 (agent sets) — produced earlier:
+  - data/interim/nodes_functional_groups_conservative.rds / .csv
+  - data/interim/nodes_strains_conservative.rds / .csv
+  - docs/phase_03/step_01_agent_sets/agent_sets_summary.txt
+- Step 3 (adjacency construction) — outputs saved here:
+  - data/interim/adj_production_FG_agentsxpyov_conservative.rds
+  - data/interim/adj_utilization_FG_pyovxagents_conservative.rds
+  - data/interim/edges_functional_groups_conservative.rds / .csv
+  - data/interim/adj_production_STR_agentsxpyov_conservative.rds
+  - data/interim/adj_utilization_STR_pyovxagents_conservative.rds
+  - data/interim/edges_strains_conservative.rds / .csv
+  - data/interim/degree_sequences_conservative.rds
+  - docs/phase_03/step_03_adjacencies/phase_03_network_summary.txt
+  - docs/phase_03/step_03_adjacencies/adjacency_counts_check.csv
+  - docs/phase_03/step_03_adjacencies/inactive_pyovs.csv
+  - docs/phase_03/step_03_adjacencies/self_producer_consumer_examples_fg.csv
+  - docs/phase_03/step_03_adjacencies/fg_component_summary.csv
+  - docs/phase_03/step_03_adjacencies/str_component_summary.csv
+
+- Note: the "93 vs 26" choice is a mapping-level decision (granularity of pyov nodes). Both representations are biologically defensible; the 93-node mapping preserves within-pair synthetase diversity, while the 26-node collapse produces a direct lock–key node-per-pair view that matches some literature conventions. Proceeding analyses (Phase 4) should document which variant was used and include sensitivity checks comparing both representations where possible.
+
+Run timestamp: 2025-10-07 13:44:49.008485
+
+Functional-group network: 177 agents x 93 pyovs
+  - production edges (FG->PYO): 175
+  - utilization edges (PYO->FG): 2238
+  - total unique FG-level edges: 2413
+
+Strain network: 1809 strains x 93 pyovs
+  - production edges (STR->PYO): 1948
+  - utilization edges (PYO->STR): 14198
+  - total unique STR-level edges: 16146
+
+Pyov statistics: validated pyovs: 93
+  - inactive pyovs (no prod & no util at FG-level): 0
+
+Component summaries saved to docs/phase_03/*_component_summary.csv
+Validation CSV saved to docs/phase_03/adjacency_counts_check.csv
+Inactive pyovs saved to docs/phase_03/inactive_pyovs.csv
+Self-producer-consumer examples saved to docs/phase_03/self_producer_consumer_examples_fg.csv
