@@ -1,0 +1,114 @@
+# Figure Captions — Step 04: Nestedness (NODF) Analysis
+# Path: figures/network_topology/step04_nestedness/figure_captions.txt
+# Generated: 2025-10-08
+# Author: automated-agent (engineer)
+#
+# Notes:
+# - These captions describe the plots produced by Step 04 nestedness analysis (NODF matrix heatmaps and FG-vs-STR comparison).
+# - Captions reference numeric results from the run saved in:
+#     docs/phase_04/step04_nestedness_summary.txt
+# - Visual outputs are stored under:
+#     figures/network_topology/step04_nestedness/
+#
+# -----------------------------------------------------------------------------
+# File: figures/network_topology/step04_nestedness/nodf_matrix_fg.pdf
+# -----------------------------------------------------------------------------
+Caption:
+Nestedness matrix for the functional-group (FG) network (177 FGs × 93 pyoverdines), ordered by decreasing degree.
+Black tiles indicate a binary interaction (production or utilization); white tiles indicate no observed interaction.
+Summary statistics (this run): total interactions = 2,244 (matrix fill = 13.6%); NODF (primary, bipartite-derived) = 20.37; cross-validation (vegan) = 14.93.
+How to read this figure:
+  - Global pattern: ordered rows and columns reveal whether specialization represents nested subsets of generalist repertoires.
+  - Dense top-left banding and tapering toward bottom-right indicate nested structure; blocky off-diagonal structure indicates modularity.
+  - Because per-row and per-column NODF components were not extracted in this run (NA), use the visual ordering and per-node degree annotations (if overlaid) to infer which side drives nested structure.
+Biological interpretation:
+  - FG-level NODF ≈ 20 (moderate nestedness) suggests mixed architecture: shared pyoverdine repertoires exist alongside specialization.
+  - This is consistent with collapsed functional-group representations emphasizing shared strategies and thereby increasing hierarchical overlap.
+Files & usage:
+  - Location: figures/network_topology/step04_nestedness/nodf_matrix_fg.pdf
+  - Numeric summary: docs/phase_04/step04_nestedness_summary.txt
+  - Programmatic result: results/phase_04/nestedness/nestedness_fg.rds
+
+# -----------------------------------------------------------------------------
+# File: figures/network_topology/step04_nestedness/nodf_matrix_str.pdf
+# -----------------------------------------------------------------------------
+Caption:
+Nestedness matrix for the strain-level (STR) network (1,809 strains × 93 pyoverdines), ordered by decreasing degree.
+Black tiles indicate a binary interaction (production or utilization); large networks may be subsampled (top 200 strains shown) to reveal structure clearly.
+Summary statistics (this run): total interactions = 14,204 (matrix fill = 8.4%); NODF (primary, bipartite-derived) = 13.21; cross-validation (vegan) = 13.71.
+How to read this figure:
+  - Lower global density and larger network size reduce apparent NODF relative to the FG-level; examine top-degree strains for nested signatures.
+  - If the figure is a top-200 subset, interpret it as a visualization of the most connected strains rather than the full network.
+Biological interpretation:
+  - STR-level NODF ≈ 13 (moderate but weaker than FG-level) indicates that strain-level repertoires are more specialized or heterogeneous, with less hierarchical containment than the collapsed FG representation.
+  - The similarity between bipartite- and vegan-derived scores at the STR level (13.2 vs 13.7) increases confidence in the result.
+Files & usage:
+  - Location: figures/network_topology/step04_nestedness/nodf_matrix_str.pdf
+  - Numeric summary: docs/phase_04/step04_nestedness_summary.txt
+  - Programmatic result: results/phase_04/nestedness/nestedness_str.rds
+
+# -----------------------------------------------------------------------------
+# File: figures/network_topology/step04_nestedness/nodf_comparison.pdf
+# -----------------------------------------------------------------------------
+Caption:
+Bar plot comparing overall NODF scores between network levels: Functional Groups (NODF ≈ 20.37 [bipartite], 14.93 [vegan]) vs Strains (NODF ≈ 13.21 [bipartite], 13.71 [vegan]).
+Interpretation:
+  - The FG-level network exhibits higher NODF than the STR-level network in this run, consistent with functional-group collapse amplifying shared repertoires.
+  - The modest divergence between bipartite and vegan NODF at the FG level (20.4 vs 14.9) highlights implementation and normalization differences; report both or choose one canonical method and document it.
+  - Use this panel as a concise summary statistic in manuscripts or supplements; accompany with null-model significance testing (recommended) to report standardized effect sizes.
+Files & usage:
+  - Location: figures/network_topology/step04_nestedness/nodf_comparison.pdf
+  - Numeric summary: docs/phase_04/step04_nestedness_summary.txt
+  - Programmatic results: results/phase_04/nestedness/*.rds
+
+# -----------------------------------------------------------------------------
+# Intro: NODF (Nestedness metric based on Overlap and Decreasing Fill)
+# -----------------------------------------------------------------------------
+Intro and methodological note:
+  - **What is nestedness?** In ecological networks, nestedness describes a pattern where the interactions of less-connected species (specialists) form perfect subsets of the interactions of more-connected species (generalists). Imagine a food web where a specialist predator only eats prey that a generalist predator also eats—this creates a nested hierarchy. In bipartite networks (like plant-pollinator or host-parasite systems), nestedness means that specialists interact only with a subset of the partners that generalists interact with.
+
+  - **What is NODF?** NODF (Nestedness metric based on Overlap and Decreasing Fill) is a widely used quantitative measure for nestedness in bipartite ecological networks. It was developed to overcome limitations of earlier metrics like NODF (Nestedness Overlap and Decreasing Fill). NODF quantifies hierarchical overlap by combining two key components:
+      (a) **Decreasing fill**: Rows and columns are sorted by their total number of interactions (degree). In a perfectly nested network, the matrix should show a gradual decrease in filled cells as you move from top-left to bottom-right.
+      (b) **Pairwise overlap**: For every pair of rows (or columns), NODF measures how much their interaction sets overlap, penalizing deviations from perfect subset relationships.
+
+  - **How is NODF calculated?** The metric ranges from 0 (no nestedness) to 100 (perfect nestedness). It works by:
+      1. Sorting rows and columns by decreasing degree (total interactions).
+      2. For each pair of rows, calculating the overlap between their interaction sets.
+      3. Averaging these overlaps across all pairs, weighted by the expected overlap under perfect nestedness.
+      4. Repeating for columns and combining row and column components.
+      Mathematically, NODF = (average row nestedness + average column nestedness) / 2, where each component accounts for the proportion of expected overlaps that are actually present.
+
+  - **Why does nestedness matter?** Nestedness is biologically significant because it reveals non-random interaction patterns. High nestedness suggests that specialists rely on a core set of generalist partners, which can indicate:
+      - **Ecological stability**: Generalists provide "insurance" for specialists.
+      - **Co-evolutionary history**: Shared interactions may reflect common evolutionary pressures.
+      - **Community assembly**: Nested patterns can emerge from environmental filtering or competitive hierarchies.
+      In microbial siderophore networks, nestedness might indicate that certain pyoverdines are "public goods" used by many strains, while specialists have restricted repertoires.
+
+  - **How to interpret NODF values?** NODF values are commonly reported on a 0–100 scale; for interpretive convenience this pipeline uses the raw NODF score (comparable across runs) with the following pragmatic interpretation:
+      * NODF < 10  : Low nestedness (network dominated by modular / non-overlapping structure—interactions are compartmentalized)
+      * NODF 10–30 : Moderate nestedness (mixed modular-nested architecture—some hierarchy exists alongside specialization)
+      * NODF > 30  : High nestedness (strong hierarchical containment and generalist→specialist ordering—specialists are subsets of generalists)
+      Values above 50 are rare and indicate near-perfect nestedness.
+
+  - **Technical notes and caveats**: Different software packages implement NODF with small differences (e.g., in normalization or how missing data is handled). We compute a primary NODF using the bipartite package (when available) and cross-validate with vegan; record package versions and use one canonical method for final reporting. NODF assumes binary interactions and may not perform well on very sparse or very dense networks. For statistical rigor, always compare observed NODF to null models (random networks with preserved degree sequences).
+
+# -----------------------------------------------------------------------------
+# What these results mean biologically (concise)
+# -----------------------------------------------------------------------------
+  - The FG-level result (NODF ≈ 20.4 by bipartite; 14.9 by vegan) indicates a moderate degree of nestedness once strains are collapsed into functional repertoires—many functional groups share core pyoverdine interactions while some remain specialized.
+  - The STR-level result (NODF ≈ 13.2 by bipartite; 13.7 by vegan) points to weaker hierarchical overlap among individual genomes; strain-level heterogeneity reduces the degree to which specialized repertoires are perfect subsets of generalists.
+  - Practical implications:
+      * Expect both module-like structure (identified in modularity analysis) and nested overlap: modules may contain internally nested subsets.
+      * High-degree pyoverdines and high-degree consumers are candidate hub nodes that structure nested patterns and are priority targets for sensitivity testing (remove/perturb and recompute metrics).
+      * Null-model testing (degree-preserving randomizations) is needed to assess whether observed NODF values exceed expectations from degree sequences alone; compute empirical p-values and standardized effect sizes (SES) for rigorous interpretation.
+
+# -----------------------------------------------------------------------------
+# Recommended follow-ups (brief)
+# -----------------------------------------------------------------------------
+  1. Extract per-row and per-column NODF contributions (row/column components) to identify whether nestedness is driven primarily by agent-side or pyov-side structure.
+  2. Run degree-preserving null models (pilot N=100, final N≥1000) using swap-based randomizations to compute p-values and SES for observed NODF.
+  3. Compute nestedness separately on production-only and utilization-only matrices to disentangle producer vs consumer contributions.
+  4. Overlay consensus module assignments (results/phase_04/modularity/modules_fg_consensus.csv) on the ordered nestedness matrix to visualize modular vs nested structure.
+  5. Document the chosen canonical NODF method and package versions in docs/phase_04/session_info.txt before preparing manuscript figures.
+
+# End of file.

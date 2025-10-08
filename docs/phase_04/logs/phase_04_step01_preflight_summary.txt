@@ -1,0 +1,54 @@
+Phase 04 - Step 01: Preflight & Sanity Check Summary
+Timestamp: 2025-10-08 16:06:46 CST
+
+Manifest source: json
+
+Node / Matrix Overview:
+  FG nodes         : 177
+  STR nodes        : 1809
+  Pyov nodes       : 93
+  FG prod edges    : 175
+  FG util edges    : 2238
+  STR prod edges   : 1948
+  STR util edges   : 14198
+
+Inactive pyoverdines (FG-level): 0
+
+
+Total checks: 30
+Critical failures: 0
+Warning failures : 0
+
+Detailed Checks:
+  [CRITICAL] exists_adj_prod_fg                       : PASS (data/interim/adj_production_FG_agentsxpyov_conservative.rds)
+  [CRITICAL] exists_adj_util_fg                       : PASS (data/interim/adj_utilization_FG_pyovxagents_conservative.rds)
+  [WARNING] exists_adj_prod_str                      : PASS (data/interim/adj_production_STR_agentsxpyov_conservative.rds)
+  [WARNING] exists_adj_util_str                      : PASS (data/interim/adj_utilization_STR_pyovxagents_conservative.rds)
+  [CRITICAL] exists_nodes_fg                          : PASS (data/interim/nodes_functional_groups_conservative.rds)
+  [WARNING] exists_nodes_str                         : PASS (data/interim/nodes_strains_conservative.rds)
+  [CRITICAL] exists_nodes_pyov                        : PASS (data/interim/nodes_pyoverdines_conservative.rds)
+  [WARNING] exists_degree_seq                        : PASS (data/interim/degree_sequences_conservative.rds)
+  [CRITICAL] fg_prod_rows_match_nodes_fg              : PASS (Rows in prod matrix: 177 == FG nodes: 177)
+  [CRITICAL] fg_prod_cols_match_nodes_pyov            : PASS (Cols in prod matrix: 93 == Pyov nodes: 93)
+  [CRITICAL] fg_util_rows_match_nodes_pyov            : PASS (Util rows == pyov nodes)
+  [CRITICAL] fg_util_cols_match_nodes_fg              : PASS (Util cols == FG nodes)
+  [WARNING] fg_prod_rowname_alignment                : PASS (FG production rownames align with FG agent IDs (unordered match))
+  [WARNING] fg_prod_colname_alignment                : PASS (Pyov colnames align with node_id)
+  [CRITICAL] str_prod_rows_match_nodes_str            : PASS (Strain production rows == strain nodes)
+  [CRITICAL] str_prod_cols_match_nodes_pyov           : PASS (Strain production cols == pyov nodes)
+  [CRITICAL] str_util_rows_match_nodes_pyov           : PASS (Strain utilization rows == pyov nodes)
+  [CRITICAL] str_util_cols_match_nodes_str            : PASS (Strain utilization cols == strain nodes)
+  [WARNING] str_prod_rowname_alignment               : PASS (Strain production rownames align with strain agent IDs)
+  [WARNING] str_prod_colname_alignment               : PASS (Strain production colnames align with pyov node IDs)
+  [CRITICAL] binary_adj_prod_fg                       : PASS (All entries in {0,1})
+  [CRITICAL] no_NA_adj_prod_fg                        : PASS (No NA entries)
+  [CRITICAL] binary_adj_util_fg                       : PASS (All entries in {0,1})
+  [CRITICAL] no_NA_adj_util_fg                        : PASS (No NA entries)
+  [CRITICAL] binary_adj_prod_str                      : PASS (All entries in {0,1})
+  [CRITICAL] no_NA_adj_prod_str                       : PASS (No NA entries)
+  [CRITICAL] binary_adj_util_str                      : PASS (All entries in {0,1})
+  [CRITICAL] no_NA_adj_util_str                       : PASS (No NA entries)
+  [INFO] inactive_pyoverdines_fg_level            : PASS (No inactive pyoverdines at FG-level)
+  [WARNING] degree_sequence_fg_production_out_match  : PASS (Stored FG production out-degree matches recomputed)
+
+STATUS: PASS (no critical failures). Safe to proceed to Step 02 (degree metrics).

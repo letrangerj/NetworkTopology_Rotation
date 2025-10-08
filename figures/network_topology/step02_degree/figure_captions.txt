@@ -1,0 +1,59 @@
+# Figure Captions for Network Topology Figures
+# Path: figures/network_topology/figure_captions.txt
+# Generated: 2025-10-08
+# Author: automated-agent (prepared for manuscript-ready captions)
+#
+# Notes:
+# - Each caption corresponds to a PDF saved under figures/network_topology/step02_degree.
+# - Captions include short interpretation tied to biological context and include
+#   summary statistics derived in Step 02 (degree analysis).
+#
+# Files and captions:
+
+figures/network_topology/degree_dist_fg_producer.pdf
+Caption:
+Distribution of functional-group producer out-degrees (number of pyoverdines produced per functional group).
+Across 177 functional groups and 93 validated pyoverdines the mean producer out-degree is 0.99 (median = 1, max = 3),
+with 43 functional groups lacking validated production. Biologically, this distribution indicates that most
+functional strategies are specialists or non-producers under conservative validation, while a minority produce
+multiple pyoverdines and function as production hubs that may supply the communal siderophore pool.
+
+figures/network_topology/degree_dist_fg_consumer.pdf
+Caption:
+Distribution of functional-group consumer in-degrees (number of pyoverdines each functional group can utilize).
+Functional groups have mean consumer in-degree 12.64 (median = 10, max = 39) and only 4 groups lack validated
+utilization capacity. The skew toward higher consumer degrees suggests many groups possess broad receptor repertoires,
+implying widespread potential for cross-feeding and receptor-based exploitation within ecological communities.
+
+figures/network_topology/degree_dist_str_producer.pdf
+Caption:
+Distribution of strain-level producer out-degrees (number of pyoverdines produced per strain).
+At the strain level (1,809 strains × 93 pyovs) the mean producer out-degree is 1.08 (median = 1, max = 3),
+and 225 strains have no validated production. This pattern highlights within-group heterogeneity and the presence
+of a substantial non-producer fraction under conservative criteria—important for interpreting producer–defector
+dynamics and the distribution of biosynthetic capacity across genomes.
+
+figures/network_topology/degree_dist_str_consumer.pdf
+Caption:
+Distribution of strain-level consumer in-degrees (number of pyoverdines each strain can utilize).
+Strain consumer in-degrees show mean 7.85 (median = 3, max = 39) with 4 strains lacking validated receptors.
+The long right tail reveals candidate generalist strains with broad receptor complements that could access many
+pyoverdines and thereby hold competitive advantage for iron acquisition in mixed communities.
+
+figures/network_topology/degree_ccdf_fg.pdf
+Caption:
+Complementary cumulative distribution functions (CCDFs) for FG-level degrees (producer and consumer), plotted
+on log–log axes for heavy-tail inspection. The FG producer distribution is compact (mean ≈ 1.0, max = 3) while the
+consumer distribution is more heavy-tailed (mean ≈ 12.6, max = 39), indicating a network architecture where
+production is constrained and relatively specialist, whereas utilization is broadly shared, creating uptake hubs.
+These asymmetries inform hypotheses about the flow of public siderophores and potential vulnerability to receptor-mediated exploitation.
+
+figures/network_topology/degree_ccdf_str.pdf
+Caption:
+CCDFs for strain-level degrees (producer and consumer) on log–log axes. Although producer degrees remain concentrated
+(mean ≈ 1.08, max = 3), pyoverdine- and strain-level measures of production and utilization display strong skew (pyov
+production in-degree mean ≈ 20.95, max = 768; pyov utilization out-degree mean ≈ 152.67, max = 869), revealing that
+particular pyoverdines and certain strains act as dominant hubs for production and uptake. Such dominant nodes have
+disproportionate ecological impact and are important targets for sensitivity and robustness analyses.
+
+# End of file.

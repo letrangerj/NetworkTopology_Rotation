@@ -1,0 +1,88 @@
+# Phase 04 - Parameters Manifest (human-readable)
+# Path: PhylogenicTree/docs/phase_04/parameters_manifest.txt
+# Created: 2025-10-08
+# Author: wulong
+# Purpose: Record parameters, seeds, inputs and outputs for Phase 04 - Bipartite Network Topology Analysis
+#
+# NOTES:
+# - This file contains a compact human-readable manifest followed by a machine-friendly JSON manifest.
+# - Update `R_version` and `package_versions` by pasting output from `sessionInfo()` after a run, for provenance.
+# - Scripts should read the JSON block (below) programmatically when available.
+
+project: PhylogenicTree - Siderophore Network Analysis
+phase: 04 - topology
+author: wulong
+date: 2025-10-08
+
+# Input files (relative to project root)
+input_files:
+  - data/interim/adj_production_FG_agentsxpyov_conservative.rds
+  - data/interim/adj_utilization_FG_pyovxagents_conservative.rds
+  - data/interim/adj_production_STR_agentsxpyov_conservative.rds
+  - data/interim/adj_utilization_STR_pyovxagents_conservative.rds
+  - data/interim/nodes_functional_groups_conservative.rds
+  - data/interim/nodes_strains_conservative.rds
+  - data/interim/nodes_pyoverdines_conservative.rds
+  - data/interim/degree_sequences_conservative.rds
+
+# Randomness & seed policy
+master_seed: 2025
+seed_derivation: "seed_for_task = master_seed + task_index (task_index is a small integer assigned deterministically per script)"
+# Example deterministic task_index mapping (canonical; scripts may override by reading JSON below):
+#   1 => degree_metrics
+#   2 => modularity_replicates
+#   3 => nestedness
+#   4 => null_model_pilot
+#   5 => null_model_final
+# Scripts must save the actual seed used in their run log (docs/phase_04/logs/).
+
+# Analysis parameters (defaults)
+modularity_replicates:
+  pilot: 20
+  final: 100
+
+null_model_N:
+  pilot: 100
+  final: 1000
+
+swaps_per_null: "10 * edge_count"  # heuristic; compute from edge count at runtime
+
+# Data-choice flags
+pyov_representation: "93_node"      # options: "93_node" | "26_node_collapsed"
+use_optional_nulls: false           # framework implemented but pilot nulls will NOT be executed by default
+remove_largest_FG_for_sensitivity: true
+
+# Result & storage configuration
+results_dir: results/phase_04/
+primary_outputs:
+  - results/phase_04_topology_summary.rds
+  - results/phase_04_summary_metrics.csv
+  - results/phase_04/modularity/modules_fg_raw_replicates.rds
+  - results/phase_04/null_models/null_distributions_fg.rds
+
+figures_dir: figures/network_topology/
+
+# Statistical & convergence defaults
+convergence_thresholds:
+  null_sd_fraction: 0.05  # raise N if SD > 5% of null mean
+  modularity_variance_warn: true
+
+# Environment / provenance placeholders (fill after run)
+R_version: "<fill with R.version.string from sessionInfo()>"
+package_versions:
+  bipartite: "<fill with packageVersion('bipartite')>"
+  igraph: "<fill with packageVersion('igraph')>"
+  vegan: "<fill with packageVersion('vegan')>"
+  dplyr: "<fill with packageVersion('dplyr')>"
+  R.matlab: "<fill with packageVersion('R.matlab')>"
+
+# Handling rules & notes
+binary_analysis: true  # presence/absence analyses by default
+weighted_analysis: false  # run only in sensitivity/extension steps
+zero_denominator_policy: "When computing syn/rec ratio, if consumer_count == 0 then set ratio = NA and flag in results table"
+modularity_consensus_method: "consensus clustering on replicate partitions; store co-assignment matrix"
+
+# Logging and provenance
+manifest_created_by: "agent"
+manifest_created_at: 2025-10-08T00:00:00Z
+logs_dir: docs/phase_04/logs/

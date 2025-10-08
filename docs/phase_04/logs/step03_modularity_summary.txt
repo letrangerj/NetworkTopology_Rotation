@@ -1,0 +1,20 @@
+Phase 04 - Step 03: Modularity Analysis Summary
+Timestamp: 2025-10-08 16:53:57 CST
+
+Replicates run: 20
+Master seed: 2025
+Modularity (replicates): mean=0.4117 sd=0.0203 min=0.3738 max=0.4331
+Consensus modules: 5
+Consensus modularity: 0.0411
+Consensus modularity: 0.0414
+
+Files produced under results/phase_04/modularity/:
+ - modules_fg_raw_replicates.rds / modules_fg_raw_replicates_memberships.csv
+ - modularity_scores.csv
+ - coassignment_matrix.rds / coassignment_matrix.csv
+ - modules_fg_consensus.rds / modules_fg_consensus.csv
+ - consensus_module_sizes.csv
+ - consensus_node_assignments.csv
+ - modularity_histogram.pdf
+ - coassignment_heatmap.png / coassignment_heatmap.pdf
+

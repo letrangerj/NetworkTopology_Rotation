@@ -1,0 +1,5 @@
+"resolution","mean_modularity","sd_modularity","mean_pairwise_ARI","median_pairwise_ARI","n_replicates","n_nodes","n_edges"
+0.5,NA,NA,0.12636013865271,0.127507419234542,20,270,2244
+1,NA,NA,NA,NA,20,270,2244
+1.5,NA,NA,NA,NA,20,270,2244
+2,NA,NA,NA,NA,20,270,2244

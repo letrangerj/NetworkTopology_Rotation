@@ -1,0 +1,70 @@
+{
+    "project": "PhylogenicTree - Siderophore Network Analysis",
+    "phase": "04 - topology",
+    "author": "wulong",
+    "date": "2025-10-08",
+    "input_files": [
+        "data/interim/adj_production_FG_agentsxpyov_conservative.rds",
+        "data/interim/adj_utilization_FG_pyovxagents_conservative.rds",
+        "data/interim/adj_production_STR_agentsxpyov_conservative.rds",
+        "data/interim/adj_utilization_STR_pyovxagents_conservative.rds",
+        "data/interim/nodes_functional_groups_conservative.rds",
+        "data/interim/nodes_strains_conservative.rds",
+        "data/interim/nodes_pyoverdines_conservative.rds",
+        "data/interim/degree_sequences_conservative.rds"
+    ],
+    "master_seed": 2025,
+    "seed_derivation": "seed_for_task = master_seed + task_index (task_index assigned deterministically per script/task)",
+    "task_index_mapping": {
+        "degree_metrics": 1,
+        "modularity_replicates": 2,
+        "nestedness": 3,
+        "null_model_pilot": 4,
+        "null_model_final": 5,
+        "syn_rec": 6,
+        "entropy": 7,
+        "sensitivity": 8
+    },
+    "modularity_replicates": {
+        "pilot": 20,
+        "final": 100
+    },
+    "null_model_N": {
+        "pilot": 100,
+        "final": 1000
+    },
+    "swaps_per_null": "10 * edge_count",
+    "pyov_representation": "93_node",
+    "use_optional_nulls": false,
+    "remove_largest_FG_for_sensitivity": true,
+    "results_dir": "results/phase_04/",
+    "primary_outputs": [
+        "results/phase_04_topology_summary.rds",
+        "results/phase_04_summary_metrics.csv",
+        "results/phase_04/modularity/modules_fg_raw_replicates.rds",
+        "results/phase_04/null_models/null_distributions_fg.rds"
+    ],
+    "figures_dir": "figures/network_topology/",
+    "convergence_thresholds": {
+        "null_sd_fraction": 0.05,
+        "modularity_variance_warn": true
+    },
+    "environment_placeholders": {
+        "R_version": "<fill_with_sessionInfo_R.version.string>",
+        "package_versions": {
+            "bipartite": "<packageVersion('bipartite')>",
+            "igraph": "<packageVersion('igraph')>",
+            "vegan": "<packageVersion('vegan')>",
+            "dplyr": "<packageVersion('dplyr')>",
+            "ggplot2": "<packageVersion('ggplot2')>",
+            "R.matlab": "<packageVersion('R.matlab')>"
+        }
+    },
+    "binary_analysis": true,
+    "weighted_analysis": false,
+    "zero_denominator_policy": "NA_and_flag (set ratio to null/NA and add a flag column in syn_rec table)",
+    "modularity_consensus_method": "replicate_consensus_with_coassignment_matrix",
+    "manifest_created_by": "agent",
+    "manifest_created_at": "2025-10-08T00:00:00Z",
+    "logs_dir": "docs/phase_04/logs/"
+}

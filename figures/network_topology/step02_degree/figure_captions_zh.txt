@@ -1,0 +1,35 @@
+# 图注 — 网络拓扑：步骤02 度分布分析
+# Path: figures/network_topology/step02_degree/figure_captions.txt
+# Generated: 2025-10-08
+# Author: automated-agent (prepared for manuscript-ready captions)
+#
+# 说明:
+# - 每个图注对应 figures/network_topology/step02_degree 下的 PDF。
+# - 包含与生物学背景相关的简要解读及步骤02（度分析）所得的统计摘要。
+#
+#
+figures/network_topology/degree_dist_fg_producer.pdf
+Caption:
+功能组（FG）生产者出度分布（每个功能组产生的 pyoverdines 数量）。在 177 个功能组和 93 个经验证的 pyoverdines 中，生产者出度均值为 0.99（中位数 = 1，最大 = 3），有 43 个功能组没有经过验证的产物。生物学意义在于大多数功能策略在保守验证下表现为专一或非生产者，少数功能组生产多种 pyoverdines，可能作为生产枢纽向公共 siderophore 池供给资源。
+
+figures/network_topology/degree_dist_fg_consumer.pdf
+Caption:
+功能组消费者入度分布（每个功能组可利用的 pyoverdines 数量）。功能组消费者入度均值为 12.64（中位数 = 10，最大 = 39），仅有 4 个组缺乏验证的利用能力。消费者度数偏斜表明许多组具有广泛的受体谱系，暗示群落中普遍存在交叉供给与受体驱动的剥削可能性。
+
+figures/network_topology/degree_dist_str_producer.pdf
+Caption:
+菌株级别的生产者出度分布（每株产生的 pyoverdines 数）。在菌株层面（1,809 个菌株 × 93 个 pyov）生产者出度均值为 1.08（中位数 = 1，最大 = 3），有 225 个菌株无验证产物。该模式突显组内异质性与在保守标准下存在大量非生产者比例——这对解释生产者–背叛者动力学和基因组间生物合成能力分配很重要。
+
+figures/network_topology/degree_dist_str_consumer.pdf
+Caption:
+菌株级别的消费者入度分布（每株可利用的 pyoverdines 数）。菌株消费者入度均值为 7.85（中位数 = 3，最大 = 39），有 4 个菌株缺乏验证的受体。长右尾显示候选通用菌株具有广泛受体组，可在混合群落中获得竞争性优势以获取铁。
+
+figures/network_topology/degree_ccdf_fg.pdf
+Caption:
+功能组层度数的互补累计分布函数（CCDF），在对数–对数坐标中绘制以检验重尾性。FG 生产者分布较集中（均值 ≈ 1.0，最大 = 3），而消费者分布更重尾（均值 ≈ 12.6，最大 = 39），表明网络结构中生产受约束且较为专一，而利用广泛共享，形成摄取枢纽。这些不对称性为假设侧重公共 siderophore 的流动与受体介导剥削的脆弱性提供依据。
+
+figures/network_topology/degree_ccdf_str.pdf
+Caption:
+菌株层度数的 CCDF（生产者与消费者）在对数–对数轴上。尽管生产者出度仍集中（均值 ≈ 1.08，最大 = 3），但在 pyov 与菌株层面的生产与利用度量显示强烈偏斜（pyov 生产入度均值 ≈ 20.95，最大 ≈ 768；pyov 利用出度均值 ≈ 152.67，最大 ≈ 869），表明特定 pyov 和某些菌株作为生产与摄取的主导枢纽，具有不成比例的生态影响，应作为敏感性和稳健性分析的重点目标。
+
+# End of file.

@@ -1,0 +1,13 @@
+Phase 04 - Step 01 start: 2025-10-08 15:15:15.429803
+FOUND: adj_prod_fg -> ./data/interim/adj_production_FG_agentsxpyov_conservative.rds
+FOUND: adj_util_fg -> ./data/interim/adj_utilization_FG_pyovxagents_conservative.rds
+FOUND: adj_prod_str -> ./data/interim/adj_production_STR_agentsxpyov_conservative.rds
+FOUND: adj_util_str -> ./data/interim/adj_utilization_STR_pyovxagents_conservative.rds
+FOUND: nodes_fg -> ./data/interim/nodes_functional_groups_conservative.rds
+FOUND: nodes_str -> ./data/interim/nodes_strains_conservative.rds
+FOUND: nodes_pyov -> ./data/interim/nodes_pyoverdines_conservative.rds
+adj_prod_fg dims: 177 x 93
+adj_util_fg dims: 93 x 177
+adj_prod_str dims: 1809 x 93
+adj_util_str dims: 93 x 1809
+Counts - FG: 177, PYOV: 93, STR: 1809

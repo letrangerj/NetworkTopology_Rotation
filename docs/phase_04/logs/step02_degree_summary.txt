@@ -1,0 +1,24 @@
+Phase 04 - Step 02: Degree & Distribution Metrics Summary
+Timestamp: 2025-10-08 16:12:34 CST
+
+Functional Group (FG) Level:
+  Nodes: 177 FGs, 93 Pyovs
+  Producer out-degree: mean=0.99, median=1.0, max=3, zeros=43
+  Consumer in-degree: mean=12.64, median=10.0, max=39, zeros=4
+  Pyov production in-degree: mean=1.88, median=1.0, max=12
+  Pyov utilization out-degree: mean=24.06, median=13.0, max=61
+
+Strain (STR) Level:
+  Nodes: 1809 Strains, 93 Pyovs
+  Producer out-degree: mean=1.08, median=1.0, max=3, zeros=225
+  Consumer in-degree: mean=7.85, median=3.0, max=39, zeros=4
+  Pyov production in-degree: mean=20.95, median=3.0, max=768
+  Pyov utilization out-degree: mean=152.67, median=55.0, max=869
+
+Outputs saved:
+  - results/phase_04/degree/degree_metrics_fg.rds
+  - results/phase_04/degree/degree_metrics_str.rds
+  - figures/network_topology/degree_dist_*.pdf (histograms)
+  - figures/network_topology/degree_ccdf_*.pdf (CCDF plots)
+
+Ready for Step 03: Modularity Analysis.
