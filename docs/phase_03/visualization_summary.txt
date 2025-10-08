@@ -1,10 +1,15 @@
 Phase 3 Network Visualization Summary
-Run timestamp: 2025-10-08 11:50:54.764363
+Run timestamp: 2025-10-08 13:57:07.067844
 
 Network metrics:
   Vertices: 270
   Edges: 2413
   Density: 0.0332
+
+Visualization improvements:
+  - Edges drawn first, nodes on top to reduce overlap ambiguity
+  - Updated edge direction explanation in subtitle
+  - Removed gray node annotation
 
 Files created:
   - figures/network/fg_pyov_network_panel3A.pdf

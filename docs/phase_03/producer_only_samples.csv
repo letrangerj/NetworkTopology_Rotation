@@ -1,0 +1,5 @@
+"agent_id","functional_group_id","strain_count","strategy","has_production","has_utilization","n_production_groups","n_usable_pyoverdines"
+"FG_070",70,1,"Producer-only (no utilization)",TRUE,FALSE,1,0
+"FG_131",131,1,"Producer-only (no utilization)",TRUE,FALSE,1,0
+"FG_133",133,1,"Producer-only (no utilization)",TRUE,FALSE,1,0
+"FG_167",167,1,"Producer-only (no utilization)",TRUE,FALSE,1,0

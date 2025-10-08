@@ -1,0 +1,11 @@
+"agent_id","functional_group_id","strain_count","strategy","has_production","has_utilization","n_production_groups","n_usable_pyoverdines"
+"FG_099",99,6,"Multi-receptor producer",TRUE,TRUE,1,4
+"FG_132",132,1,"Multi-receptor producer",TRUE,TRUE,1,8
+"FG_069",69,1,"Multi-receptor producer",TRUE,TRUE,1,10
+"FG_152",152,3,"Multi-receptor producer",TRUE,TRUE,1,14
+"FG_062",62,3,"Multi-receptor producer",TRUE,TRUE,1,6
+"FG_177",177,1,"Multi-receptor producer",TRUE,TRUE,1,11
+"FG_097",97,1,"Multi-receptor producer",TRUE,TRUE,1,4
+"FG_068",68,66,"Multi-receptor producer",TRUE,TRUE,1,16
+"FG_149",149,11,"Multi-receptor producer",TRUE,TRUE,1,14
+"FG_087",87,4,"Multi-receptor producer",TRUE,TRUE,1,4

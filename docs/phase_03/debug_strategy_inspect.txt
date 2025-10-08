@@ -1,0 +1,56 @@
+Strategy inspection run: 2025-10-08 12:05:36.326653
+Input FG CSV: data/interim/nodes_functional_groups_conservative.csv
+
+Strategy counts (descending):
+   95  Multi-receptor producer
+   43  Nonproducer
+   33  Multi-producer
+    4  Producer-only (no utilization)
+    2  Single-receptor producer
+
+Producer-only groups: 4 (sample written to docs/phase_03/producer_only_samples.csv)
+Sample rows (Producer-only):
+  - agent_id=FG_070 ; functional_group_id=70 ; strain_count=1 ; strategy=Producer-only (no utilization) ; n_production_groups=1 ; n_usable_pyoverdines=0
+  - agent_id=FG_131 ; functional_group_id=131 ; strain_count=1 ; strategy=Producer-only (no utilization) ; n_production_groups=1 ; n_usable_pyoverdines=0
+  - agent_id=FG_133 ; functional_group_id=133 ; strain_count=1 ; strategy=Producer-only (no utilization) ; n_production_groups=1 ; n_usable_pyoverdines=0
+  - agent_id=FG_167 ; functional_group_id=167 ; strain_count=1 ; strategy=Producer-only (no utilization) ; n_production_groups=1 ; n_usable_pyoverdines=0
+
+Multi-receptor producer groups: 95 (sample written to docs/phase_03/multi_receptor_samples.csv)
+Sample rows (Multi-receptor producer):
+  - agent_id=FG_099 ; functional_group_id=99 ; strain_count=6 ; strategy=Multi-receptor producer ; n_production_groups=1 ; n_usable_pyoverdines=4
+  - agent_id=FG_132 ; functional_group_id=132 ; strain_count=1 ; strategy=Multi-receptor producer ; n_production_groups=1 ; n_usable_pyoverdines=8
+  - agent_id=FG_069 ; functional_group_id=69 ; strain_count=1 ; strategy=Multi-receptor producer ; n_production_groups=1 ; n_usable_pyoverdines=10
+  - agent_id=FG_152 ; functional_group_id=152 ; strain_count=3 ; strategy=Multi-receptor producer ; n_production_groups=1 ; n_usable_pyoverdines=14
+  - agent_id=FG_062 ; functional_group_id=62 ; strain_count=3 ; strategy=Multi-receptor producer ; n_production_groups=1 ; n_usable_pyoverdines=6
+  - agent_id=FG_177 ; functional_group_id=177 ; strain_count=1 ; strategy=Multi-receptor producer ; n_production_groups=1 ; n_usable_pyoverdines=11
+  - agent_id=FG_097 ; functional_group_id=97 ; strain_count=1 ; strategy=Multi-receptor producer ; n_production_groups=1 ; n_usable_pyoverdines=4
+  - agent_id=FG_068 ; functional_group_id=68 ; strain_count=66 ; strategy=Multi-receptor producer ; n_production_groups=1 ; n_usable_pyoverdines=16
+  - agent_id=FG_149 ; functional_group_id=149 ; strain_count=11 ; strategy=Multi-receptor producer ; n_production_groups=1 ; n_usable_pyoverdines=14
+  - agent_id=FG_087 ; functional_group_id=87 ; strain_count=4 ; strategy=Multi-receptor producer ; n_production_groups=1 ; n_usable_pyoverdines=4
+
+Single-receptor producer groups: 2
+Multi-producer groups: 33
+Nonproducer groups: 43
+R version 4.5.1 (2025-06-13)
+Platform: x86_64-redhat-linux-gnu
+Running under: Fedora Linux 42 (WSL)
+
+Matrix products: default
+BLAS/LAPACK: FlexiBLAS OPENBLAS-OPENMP;  LAPACK version 3.12.0
+
+locale:
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+ [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+
+time zone: Asia/Taipei
+tzcode source: system (glibc)
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+loaded via a namespace (and not attached):
+[1] compiler_4.5.1 
