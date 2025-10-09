@@ -1,0 +1,212 @@
+=== Fast NODF Null Model Diagnostics ===
+Timestamp: 2025-10-09 19:16:01 CST
+Method: vegan::oecosimu + curveball
+N_nulls: 100
+
+--- Independent Null 1 (seed: 3025) ---
+Null 1 NODF: 20.368972
+--- Independent Null 2 (seed: 4025) ---
+Null 2 NODF: 20.433306
+--- Independent Null 3 (seed: 5025) ---
+Null 3 NODF: 20.378821
+--- Independent Null 4 (seed: 6025) ---
+Null 4 NODF: 20.368972
+--- Independent Null 5 (seed: 7025) ---
+Null 5 NODF: 20.670063
+--- Independent Null 6 (seed: 8025) ---
+Null 6 NODF: 20.334013
+--- Independent Null 7 (seed: 9025) ---
+Null 7 NODF: 20.419585
+--- Independent Null 8 (seed: 10025) ---
+Null 8 NODF: 20.397304
+--- Independent Null 9 (seed: 11025) ---
+Null 9 NODF: 20.371687
+--- Independent Null 10 (seed: 12025) ---
+Null 10 NODF: 20.368972
+--- Independent Null 11 (seed: 13025) ---
+Null 11 NODF: 20.398467
+--- Independent Null 12 (seed: 14025) ---
+Null 12 NODF: 20.607404
+--- Independent Null 13 (seed: 15025) ---
+Null 13 NODF: 20.447763
+--- Independent Null 14 (seed: 16025) ---
+Null 14 NODF: 20.537260
+--- Independent Null 15 (seed: 17025) ---
+Null 15 NODF: 20.400041
+--- Independent Null 16 (seed: 18025) ---
+Null 16 NODF: 20.507506
+--- Independent Null 17 (seed: 19025) ---
+Null 17 NODF: 20.396366
+--- Independent Null 18 (seed: 20025) ---
+Null 18 NODF: 20.452844
+--- Independent Null 19 (seed: 21025) ---
+Null 19 NODF: 20.368972
+--- Independent Null 20 (seed: 22025) ---
+Null 20 NODF: 20.657610
+--- Independent Null 21 (seed: 23025) ---
+Null 21 NODF: 20.642871
+--- Independent Null 22 (seed: 24025) ---
+Null 22 NODF: 20.676923
+--- Independent Null 23 (seed: 25025) ---
+Null 23 NODF: 20.368972
+--- Independent Null 24 (seed: 26025) ---
+Null 24 NODF: 20.446378
+--- Independent Null 25 (seed: 27025) ---
+Null 25 NODF: 20.447857
+--- Independent Null 26 (seed: 28025) ---
+Null 26 NODF: 20.505253
+--- Independent Null 27 (seed: 29025) ---
+Null 27 NODF: 20.478820
+--- Independent Null 28 (seed: 30025) ---
+Null 28 NODF: 20.375634
+--- Independent Null 29 (seed: 31025) ---
+Null 29 NODF: 20.368972
+--- Independent Null 30 (seed: 32025) ---
+Null 30 NODF: 20.384274
+--- Independent Null 31 (seed: 33025) ---
+Null 31 NODF: 20.368972
+--- Independent Null 32 (seed: 34025) ---
+Null 32 NODF: 20.392472
+--- Independent Null 33 (seed: 35025) ---
+Null 33 NODF: 20.420849
+--- Independent Null 34 (seed: 36025) ---
+Null 34 NODF: 20.372888
+--- Independent Null 35 (seed: 37025) ---
+Null 35 NODF: 20.690761
+--- Independent Null 36 (seed: 38025) ---
+Null 36 NODF: 20.555398
+--- Independent Null 37 (seed: 39025) ---
+Null 37 NODF: 20.559130
+--- Independent Null 38 (seed: 40025) ---
+Null 38 NODF: 20.368972
+--- Independent Null 39 (seed: 41025) ---
+Null 39 NODF: 20.614701
+--- Independent Null 40 (seed: 42025) ---
+Null 40 NODF: 20.379002
+--- Independent Null 41 (seed: 43025) ---
+Null 41 NODF: 20.497732
+--- Independent Null 42 (seed: 44025) ---
+Null 42 NODF: 20.492865
+--- Independent Null 43 (seed: 45025) ---
+Null 43 NODF: 20.368972
+--- Independent Null 44 (seed: 46025) ---
+Null 44 NODF: 20.371399
+--- Independent Null 45 (seed: 47025) ---
+Null 45 NODF: 20.395931
+--- Independent Null 46 (seed: 48025) ---
+Null 46 NODF: 20.673337
+--- Independent Null 47 (seed: 49025) ---
+Null 47 NODF: 20.581100
+--- Independent Null 48 (seed: 50025) ---
+Null 48 NODF: 20.506368
+--- Independent Null 49 (seed: 51025) ---
+Null 49 NODF: 20.415916
+--- Independent Null 50 (seed: 52025) ---
+Null 50 NODF: 20.362273
+--- Independent Null 51 (seed: 53025) ---
+Null 51 NODF: 20.471834
+--- Independent Null 52 (seed: 54025) ---
+Null 52 NODF: 20.368972
+--- Independent Null 53 (seed: 55025) ---
+Null 53 NODF: 20.416705
+--- Independent Null 54 (seed: 56025) ---
+Null 54 NODF: 20.378063
+--- Independent Null 55 (seed: 57025) ---
+Null 55 NODF: 20.368972
+--- Independent Null 56 (seed: 58025) ---
+Null 56 NODF: 20.397492
+--- Independent Null 57 (seed: 59025) ---
+Null 57 NODF: 20.368972
+--- Independent Null 58 (seed: 60025) ---
+Null 58 NODF: 20.478722
+--- Independent Null 59 (seed: 61025) ---
+Null 59 NODF: 20.419572
+--- Independent Null 60 (seed: 62025) ---
+Null 60 NODF: 20.431234
+--- Independent Null 61 (seed: 63025) ---
+Null 61 NODF: 20.412783
+--- Independent Null 62 (seed: 64025) ---
+Null 62 NODF: 20.675904
+--- Independent Null 63 (seed: 65025) ---
+Null 63 NODF: 20.376527
+--- Independent Null 64 (seed: 66025) ---
+Null 64 NODF: 20.369281
+--- Independent Null 65 (seed: 67025) ---
+Null 65 NODF: 20.396426
+--- Independent Null 66 (seed: 68025) ---
+Null 66 NODF: 20.399930
+--- Independent Null 67 (seed: 69025) ---
+Null 67 NODF: 20.375647
+--- Independent Null 68 (seed: 70025) ---
+Null 68 NODF: 20.398913
+--- Independent Null 69 (seed: 71025) ---
+Null 69 NODF: 20.401001
+--- Independent Null 70 (seed: 72025) ---
+Null 70 NODF: 20.451328
+--- Independent Null 71 (seed: 73025) ---
+Null 71 NODF: 20.485199
+--- Independent Null 72 (seed: 74025) ---
+Null 72 NODF: 20.368972
+--- Independent Null 73 (seed: 75025) ---
+Null 73 NODF: 20.376527
+--- Independent Null 74 (seed: 76025) ---
+Null 74 NODF: 20.340142
+--- Independent Null 75 (seed: 77025) ---
+Null 75 NODF: 20.497293
+--- Independent Null 76 (seed: 78025) ---
+Null 76 NODF: 20.368972
+--- Independent Null 77 (seed: 79025) ---
+Null 77 NODF: 20.420698
+--- Independent Null 78 (seed: 80025) ---
+Null 78 NODF: 20.428296
+--- Independent Null 79 (seed: 81025) ---
+Null 79 NODF: 20.488259
+--- Independent Null 80 (seed: 82025) ---
+Null 80 NODF: 20.440430
+--- Independent Null 81 (seed: 83025) ---
+Null 81 NODF: 20.371736
+--- Independent Null 82 (seed: 84025) ---
+Null 82 NODF: 20.457834
+--- Independent Null 83 (seed: 85025) ---
+Null 83 NODF: 20.469376
+--- Independent Null 84 (seed: 86025) ---
+Null 84 NODF: 20.418391
+--- Independent Null 85 (seed: 87025) ---
+Null 85 NODF: 20.368972
+--- Independent Null 86 (seed: 88025) ---
+Null 86 NODF: 20.475251
+--- Independent Null 87 (seed: 89025) ---
+Null 87 NODF: 20.397514
+--- Independent Null 88 (seed: 90025) ---
+Null 88 NODF: 20.537260
+--- Independent Null 89 (seed: 91025) ---
+Null 89 NODF: 20.422415
+--- Independent Null 90 (seed: 92025) ---
+Null 90 NODF: 20.368972
+--- Independent Null 91 (seed: 93025) ---
+Null 91 NODF: 20.369948
+--- Independent Null 92 (seed: 94025) ---
+Null 92 NODF: 20.369756
+--- Independent Null 93 (seed: 95025) ---
+Null 93 NODF: 20.410642
+--- Independent Null 94 (seed: 96025) ---
+Null 94 NODF: 20.375814
+--- Independent Null 95 (seed: 97025) ---
+Null 95 NODF: 20.382122
+--- Independent Null 96 (seed: 98025) ---
+Null 96 NODF: 20.400201
+--- Independent Null 97 (seed: 99025) ---
+Null 97 NODF: 20.645755
+--- Independent Null 98 (seed: 100025) ---
+Null 98 NODF: 20.424923
+--- Independent Null 99 (seed: 101025) ---
+Null 99 NODF: 20.520860
+--- Independent Null 100 (seed: 102025) ---
+Null 100 NODF: 20.405965
+Runtime: 32.3 seconds
+Observed NODF (oecosimu): 20.368972
+Valid nulls: 100 out of 100
+Null NAs: 0 out of 100
+Null range: 20.334 - 20.691
+First few null values: 20.3689723112032, 20.4333062420841, 20.3788209922894, 20.3689723112032, 20.670063131333
+All null values unique: FALSE

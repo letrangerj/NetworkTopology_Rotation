@@ -1,0 +1,31 @@
+Phase 04 - Step 03c: Null-model modularity test (FG-level)
+Timestamp: 2025-10-09 18:48:37 CST
+Method: vegan::oecosimu(curveball) + igraph Louvain
+Parameters: N_NULLS=200, independent seeds, nsimul= workaround
+
+Network Summary:
+  Incidence matrix: 177 x 93 (2244 edges, 13.6% fill)
+
+Modularity Results:
+  Observed modularity:     0.4125
+  Null mean ± SD:         0.4310 ± 0.0110
+  Null range:            0.3876 - 0.4419
+  P-value (two-tailed):   0.1095
+  SES (Standardized Effect Size): -1.68
+  Significance:           Not significant
+  Effect interpretation:  Within expected range given degree constraints
+
+Quality Metrics:
+  Valid nulls:            200/200 (100.0%)
+  Independence method:    Unique seeds per null
+
+Interpretation Guide:
+  • SES > 2: Network is more modular than degree constraints predict
+  • |SES| < 2: Modularity within expected range of null models
+  • p < 0.05: Statistically significant deviation from null expectation
+
+Next steps:
+  • Observed modularity not significant → Focus on other topological metrics
+
+Note: This script intentionally writes a single text summary file only (no CSV or RDS).
+The full null distribution is not saved by design; re-run with modifications if you need the raw vector.

@@ -1,0 +1,30 @@
+Phase 04 - Step 04a: Independent Null Model NODF Analysis Summary (FG Only)
+Timestamp: 2025-10-09 19:24:03 CST
+Method: Independent vegan::oecosimu(curveball) + bipartite::nested
+Runtime: 32.3 seconds (3.1 nulls/sec)
+Independence: Individual generation with unique seeds
+Algorithm: nsimul=2 per null, take first value (avoids nsimul=1 bug)
+
+Functional Group (FG) Level:
+  Observed NODF: 20.369
+  Valid nulls: 100 out of 100 (100.0% success rate)
+  Null mean ± SD: 20.441 ± 0.089
+  Null median: 20.408
+  Null range: 20.334 - 20.691
+
+Statistical Tests:
+  P-value (two-tailed): 0.3564
+  Z-score: -0.812
+  Standardized Effect Size (SES): -0.812
+  Significance: Not significant
+
+Interpretation:
+  SES > 2: Strong positive deviation (more nested than expected)
+  SES < -2: Strong negative deviation (less nested than expected)
+  |SES| < 2: Within expected range given degree constraints
+
+Independence Validation:
+  ✅ Independence check: PASSED (stable means, diff=0.036)
+
+Note: Compact mode - only text summary saved (no RDS/PDF outputs)
+Re-run with modifications if you need raw values or visualizations.

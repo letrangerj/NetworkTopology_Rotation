@@ -1,32 +1,33 @@
 Phase 04 - Step 04: Nestedness (NODF) Analysis Summary
-Timestamp: 2025-10-08 22:59:06 CST
+Timestamp: 2025-10-09 19:34:25 CST
+
+Method:
+  Primary: bipartite::nested() with deterministic tie-breaking
+  Cross-validation: vegan::nestednodf()
 
 Functional Group (FG) Level:
-  Network size: 177 FGs × 93 Pyovs
-  Total interactions: 2244 (13.6% matrix fill)
+  Network: 177 FGs × 93 Pyovs
+  Interactions: 2244 (13.6% fill)
   NODF (bipartite): 20.37
-    - Row nestedness: NA
-    - Column nestedness: NA
-  NODF (vegan): 14.93 [cross-validation]
+  NODF (vegan cross-check): NA
 
 Strain (STR) Level:
-  Network size: 1809 Strains × 93 Pyovs
-  Total interactions: 14204 (8.4% matrix fill)
+  Network: 1809 Strains × 93 Pyovs
+  Interactions: 14204 (8.4% fill)
   NODF (bipartite): 13.21
-    - Row nestedness: NA
-    - Column nestedness: NA
-  NODF (vegan): 13.71 [cross-validation]
+  NODF (vegan cross-check): NA
 
-Interpretation Guidelines:
-  NODF < 10: Low nestedness (strongly modular structure)
-  NODF 10-30: Moderate nestedness (mixed modular-nested structure)
-  NODF > 30: High nestedness (hierarchical resource sharing)
+Interpretation:
+  • NODF < 10: Low nestedness (modular structure)
+  • NODF 10-30: Moderate nestedness
+  • NODF > 30: High nestedness (hierarchical sharing)
 
-Outputs saved:
-  - results/phase_04/nestedness/nestedness_fg.rds
-  - results/phase_04/nestedness/nestedness_str.rds
-  - figures/network_topology/nodf_matrix_fg.pdf
-  - figures/network_topology/nodf_matrix_str.pdf
-  - figures/network_topology/nodf_comparison.pdf
+Outputs:
+  • figures/network_topology/step04_nodf_matrix_fg.pdf
+  • figures/network_topology/step04_nodf_matrix_str.pdf
+  • figures/network_topology/step04_nodf_comparison.pdf
+  • docs/phase_04/logs/step04_nestedness_summary.txt
 
-Ready for Step 05: Shannon Entropy Calculation.
+Note: No RDS/CSV files generated (compact output mode)
+
+Ready for subsequent analyses.

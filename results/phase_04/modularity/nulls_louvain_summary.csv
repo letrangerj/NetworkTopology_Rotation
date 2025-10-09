@@ -1,0 +1,12 @@
+metric,value,description
+observed_modularity,0.413754563565825,Observed Louvain modularity
+null_mean,0.430951561561669,Mean of null distribution
+null_sd,0.0109849757426549,Standard deviation of null distribution
+null_median,0.436036799260297,Median of null distribution
+p_value,0.149253731343284,Two-tailed empirical p-value
+ses,-1.56550168145275,Standardized effect size
+z_score,-1.56550168145275,Z-score (same as SES)
+significance,Not significant,Statistical significance (p<0.05)
+valid_nulls,200,Number of valid null replicates
+total_attempted,200,Total null replicates attempted
+success_rate_pct,100,Percentage of successful null generations

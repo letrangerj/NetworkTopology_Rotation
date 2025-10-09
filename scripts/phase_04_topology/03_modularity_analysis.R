@@ -1,32 +1,22 @@
 #!/usr/bin/env Rscript
 
-# Phase 04 - Step 03: Modularity Analysis (replicate Louvain + co-assignment)
+# Phase 04 - Step 03: Modularity Analysis (replicate Louvain + minimal output)
 # -------------------------------------------------------------------------
 # Purpose:
 #   - Perform replicate Louvain community detection on the combined bipartite graph
 #     (functional-group nodes + pyoverdine nodes) using an undirected representation.
 #   - Produce replicate partitions, modularity scores, a co-assignment matrix,
-#     a consensus partition derived from the co-assignment matrix, and visualizations:
-#       * Co-assignment heatmap
-#       * Modularity score histogram across replicates
-#       * Module-size summary
+#     a consensus partition derived from the co-assignment matrix.
+#   - Minimal output mode: text summary and figures only (no RDS/CSV files)
 #
 # Outputs:
-#   - results/phase_04/modularity/modules_fg_raw_replicates.rds  (list with memberships + modularity)
-#   - results/phase_04/modularity/modules_fg_consensus.rds      (consensus membership)
-#   - results/phase_04/modularity/coassignment_matrix.rds
-#   - results/phase_04/modularity/coassignment_matrix.csv
-#   - results/phase_04/modularity/modularity_scores.csv
-#   - results/phase_04/modularity/modularity_histogram.pdf
-#   - results/phase_04/modularity/coassignment_heatmap.pdf
+#   - figures/network_topology/step03_modularity_histogram.pdf
+#   - figures/network_topology/step03_coassignment_heatmap.pdf
 #   - docs/phase_04/logs/step03_modularity_summary.txt
-#   - docs/phase_04/logs/step03_session_info.txt
 #
 # Notes:
 #   - This script uses igraph's Louvain implementation (`cluster_louvain`) on an undirected,
-#     unweighted graph that contains both FG and pyov nodes. This is a pragmatic choice:
-#     many bipartite modularity implementations exist, but Louvain on the combined graph
-#     identifies modules composed of mixed vertex types. We run replicates to assess stability.
+#     unweighted graph that contains both FG and pyov nodes.
 #
 # Usage:
 #   Rscript scripts/phase_04_topology/03_modularity_analysis.R
@@ -40,8 +30,6 @@ suppressPackageStartupMessages({
   library(pheatmap)
   library(jsonlite)
   library(dplyr)
-  library(readr)
-  library(tidyr)
   library(ggplot2)
 })
 
@@ -52,7 +40,7 @@ safe_dir_create <- function(path) if (!dir.exists(path)) dir.create(path, recurs
 timestamp <- function() format(Sys.time(), "%Y-%m-%d %H:%M:%S %Z")
 
 # Directories
-safe_dir_create("results/phase_04/modularity")
+safe_dir_create("figures/network_topology")
 safe_dir_create("docs/phase_04/logs")
 
 # Load parameter manifest if present, else fallback to defaults
@@ -68,23 +56,14 @@ if (file.exists(manifest_json)) {
 # Default parameters (override from manifest if present)
 master_seed <- if (!is.null(manifest$master_seed)) manifest$master_seed else 2025
 mod_reps_pilot <- if (!is.null(manifest$modularity_replicates$pilot)) manifest$modularity_replicates$pilot else 20
-# Allow using final value if user set something; default to pilot for interactive runs
-# n_replicates <- if (!is.null(manifest$modularity_replicates$final)) manifest$modularity_replicates$final else 200
 n_replicates <- 200
 
-# Whether to use a larger final replicate count can be changed in manifest or by editing this script
-if (!is.null(manifest$modularity_replicates$final) && is.numeric(manifest$modularity_replicates$final)) {
-  # keep pilot by default; user can change n_replicates manually if desired
-  # n_replicates <- manifest$modularity_replicates$final
-  NULL
-}
-
-# Filepaths for Phase 3 artifacts (expected)
-adj_prod_fg_path  <- "data/interim/adj_production_FG_agentsxpyov_conservative.rds"
-adj_util_fg_path  <- "data/interim/adj_utilization_FG_pyovxagents_conservative.rds"
+# Filepaths for Phase 3 artifacts
+adj_prod_fg_path <- "data/interim/adj_production_FG_agentsxpyov_conservative.rds"
+adj_util_fg_path <- "data/interim/adj_utilization_FG_pyovxagents_conservative.rds"
 edges_fg_csv_path <- "data/interim/edges_functional_groups_conservative.csv"
-fg_nodes_path     <- "data/interim/nodes_functional_groups_conservative.rds"
-pyov_nodes_path   <- "data/interim/nodes_pyoverdines_conservative.rds"
+fg_nodes_path <- "data/interim/nodes_functional_groups_conservative.rds"
+pyov_nodes_path <- "data/interim/nodes_pyoverdines_conservative.rds"
 
 # Check input existence
 required_paths <- c(adj_prod_fg_path, adj_util_fg_path, fg_nodes_path, pyov_nodes_path, edges_fg_csv_path)
@@ -100,49 +79,26 @@ adj_prod_fg <- readRDS(adj_prod_fg_path)     # FG (rows) x PYO (cols)
 adj_util_fg <- readRDS(adj_util_fg_path)     # PYO (rows) x FG (cols)
 fg_nodes    <- readRDS(fg_nodes_path)
 pyov_nodes  <- readRDS(pyov_nodes_path)
-edges_fg    <- read_csv(edges_fg_csv_path, show_col_types = FALSE)
 
 # Build undirected edge list for combined bipartite graph.
-# Use production edges to generate agent <-> pyov edges (they represent the same bipartite incidence).
-# If edges CSV includes both production and utilization, we deduplicate.
 message("Building combined undirected bipartite graph (FG + PYO nodes)...")
 
-# Prefer edges CSV when available for human-readable edge list (it includes both types).
-if (nrow(edges_fg) > 0) {
-  # Select unique undirected edges between agent and pyov nodes
-  # edges_fg has columns: source, target, source_type, target_type, edge_type
-  # We want edges between FG agent_id and pyov node_id (regardless of direction)
-  undirected_edges <- edges_fg %>%
-    filter((source_type == "functional_group" & target_type == "pyoverdine") |
-             (source_type == "pyoverdine" & target_type == "functional_group")) %>%
-    transmute(a = source, b = target) %>%
-    # normalize order so that identical undirected edges match
-    rowwise() %>%
-    mutate(n1 = min(c(a, b)), n2 = max(c(a, b))) %>%
-    ungroup() %>%
-    transmute(from = n1, to = n2) %>%
-    distinct()
-} else {
-  # Fallback: construct from adj_prod_fg
-  prod_summary <- summary(adj_prod_fg)
-  # prod_summary$i = FG row index, prod_summary$j = PYO col index
-  fg_ids <- rownames(adj_prod_fg)
-  pyo_ids <- colnames(adj_prod_fg)
-  undirected_edges <- tibble(
-    from = fg_ids[prod_summary$i],
-    to   = pyo_ids[prod_summary$j]
-  ) %>%
-    rowwise() %>%
-    mutate(n1 = min(c(from, to)), n2 = max(c(from, to))) %>%
-    ungroup() %>%
-    transmute(from = n1, to = n2) %>%
-    distinct()
-}
+# Construct edges from production adjacency matrix
+prod_summary <- summary(adj_prod_fg)
+fg_ids <- rownames(adj_prod_fg)
+pyo_ids <- colnames(adj_prod_fg)
+undirected_edges <- tibble(
+  from = fg_ids[prod_summary$i],
+  to   = pyo_ids[prod_summary$j]
+) %>%
+  rowwise() %>%
+  mutate(n1 = min(c(from, to)), n2 = max(c(from, to))) %>%
+  ungroup() %>%
+  transmute(from = n1, to = n2) %>%
+  distinct()
 
 # Build vertex list: union of FG agent ids and pyov node ids
 vertex_ids <- unique(c(undirected_edges$from, undirected_edges$to))
-# Ensure all expected nodes are present (even isolated ones)
-vertex_ids <- unique(c(vertex_ids, fg_nodes$agent_id, pyov_nodes$node_id))
 
 # Create igraph undirected graph
 g_combined <- graph_from_data_frame(undirected_edges, directed = FALSE, vertices = data.frame(name = vertex_ids, stringsAsFactors = FALSE))
@@ -151,7 +107,7 @@ g_combined <- graph_from_data_frame(undirected_edges, directed = FALSE, vertices
 V(g_combined)$type <- ifelse(V(g_combined)$name %in% fg_nodes$agent_id, "fg",
                              ifelse(V(g_combined)$name %in% pyov_nodes$node_id, "pyov", "unknown"))
 
-# Remove any self-loops or duplicated edges (graph_from_data_frame handles duplicates; ensure simple)
+# Remove any self-loops or duplicated edges
 g_combined <- simplify(g_combined, remove.multiple = TRUE, remove.loops = TRUE)
 
 message(sprintf("Graph built: %d vertices (%d FG, %d PYO) and %d edges",
@@ -176,8 +132,7 @@ memberships_mat <- matrix(NA_integer_, nrow = n_nodes, ncol = n_replicates,
 modularity_scores <- numeric(n_replicates)
 partition_list <- vector("list", length = n_replicates)
 
-# To introduce stochasticity we will permute vertex order before clustering for each replicate.
-# cluster_louvain uses internal heuristics that may be sensitive to ordering; permuting induces variability.
+# Run Louvain replicates with vertex permutation for stochasticity
 for (r in seq_len(n_replicates)) {
   seed_r <- replicate_seeds[r]
   set.seed(seed_r)
@@ -189,35 +144,21 @@ for (r in seq_len(n_replicates)) {
   # Run Louvain (on unweighted graph)
   cl <- cluster_louvain(g_perm)
 
-  # cl$membership corresponds to vertex order in g_perm; map back to original vertex order
+  # Map membership back to original vertex order
   membership_perm <- cl$membership
   membership_orig_order <- integer(length(membership_perm))
-  # membership_perm[i] corresponds to g_perm vertex i which is original vertex perm[i]
   membership_orig_order[perm] <- membership_perm
 
   # Save membership and modularity score
   memberships_mat[, r] <- membership_orig_order
-  modularity_scores[r] <- cl$modularity
+  modularity_scores[r] <- modularity(g_perm, cl$membership)
   partition_list[[r]] <- membership_orig_order
-  message(sprintf("Replicate %d/%d: seed=%d modules=%d modularity=%.4f",
-                  r, n_replicates, seed_r, length(unique(membership_orig_order)), modularity_scores[r]))
-}
 
-# Save raw replicate results
-replicate_results <- list(
-  node_names = node_names,
-  memberships = memberships_mat,
-  modularity_scores = modularity_scores,
-  manifest = manifest,
-  master_seed = master_seed,
-  replicate_seeds = replicate_seeds,
-  timestamp = timestamp()
-)
-saveRDS(replicate_results, "results/phase_04/modularity/modules_fg_raw_replicates.rds")
-write_csv(as.data.frame(replicate_results$memberships, stringsAsFactors = FALSE) %>% tibble::rownames_to_column("node_id"),
-          "results/phase_04/modularity/modules_fg_raw_replicates_memberships.csv")
-write_csv(tibble(replicate = seq_len(n_replicates), modularity = modularity_scores),
-          "results/phase_04/modularity/modularity_scores.csv")
+  if (r %% 10 == 0) {
+    message(sprintf("Replicate %d/%d: seed=%d modules=%d modularity=%.4f",
+                    r, n_replicates, seed_r, length(unique(membership_orig_order)), modularity_scores[r]))
+  }
+}
 
 # -----------------------------
 # Co-assignment matrix
@@ -236,19 +177,13 @@ for (i in seq_len(n_nodes)) {
   }
 }
 
-# Save coassignment matrix
-saveRDS(coassign, "results/phase_04/modularity/coassignment_matrix.rds")
-write.csv(coassign, "results/phase_04/modularity/coassignment_matrix.csv", row.names = TRUE)
-
 # -----------------------------
 # Consensus partitioning
 # -----------------------------
 message("Deriving consensus partition from co-assignment matrix...")
 
-# Build a weighted graph from the coassignment matrix (use weights in [0,1])
-# then apply Louvain on this weighted graph to get consensus modules.
+# Build weighted graph from coassignment matrix
 g_coassign <- graph_from_adjacency_matrix(coassign, mode = "undirected", weighted = TRUE, diag = FALSE)
-# Optionally threshold tiny weights to reduce noise (not performed by default)
 
 # Run Louvain on coassignment weighted graph
 set.seed(master_seed + 9999)
@@ -259,17 +194,19 @@ names(cons_membership) <- V(g_coassign)$name
 consensus_result <- list(
   membership = cons_membership,
   modularity = cons_cl$modularity,
-  n_modules = length(unique(cons_membership)),
-  timestamp = timestamp(),
-  method = "Louvain_on_coassignment"
+  n_modules = length(unique(cons_membership))
 )
-
-saveRDS(consensus_result, "results/phase_04/modularity/modules_fg_consensus.rds")
-write_csv(tibble(node_id = names(cons_membership), consensus_module = as.integer(cons_membership)),
-          "results/phase_04/modularity/modules_fg_consensus.csv")
 
 message(sprintf("Consensus partition: modules=%d modularity=%.4f",
                 consensus_result$n_modules, consensus_result$modularity))
+
+# -----------------------------
+# Module size summary
+# -----------------------------
+module_sizes_df <- as.data.frame(table(cons_membership), stringsAsFactors = FALSE)
+colnames(module_sizes_df) <- c("module", "size")
+module_sizes_df$module <- as.integer(as.character(module_sizes_df$module))
+module_sizes <- module_sizes_df %>% arrange(desc(size))
 
 # -----------------------------
 # Visualizations
@@ -277,92 +214,92 @@ message(sprintf("Consensus partition: modules=%d modularity=%.4f",
 message("Creating modularity histogram and co-assignment heatmap...")
 
 # Histogram of modularity scores
-pdf(file.path(fig_dir, "modularity_histogram.pdf"), width = 7, height = 4)
-hist(modularity_scores, breaks = max(10, round(n_replicates/2)), main = "Louvain modularity scores across replicates",
-     xlab = "Modularity (Q)", col = "steelblue", border = "white")
-abline(v = consensus_result$modularity, col = "red", lwd = 2, lty = 2)
-legend("topright", legend = c("Consensus modularity"), col = c("red"), lty = 2, bty = "n")
-dev.off()
+p_hist <- ggplot(data.frame(modularity = modularity_scores), aes(x = modularity)) +
+  geom_histogram(bins = max(10, round(n_replicates/2)), fill = "steelblue", alpha = 0.7) +
+  geom_vline(xintercept = consensus_result$modularity, color = "red", linetype = "dashed", linewidth = 1) +
+  labs(title = "Louvain modularity scores across replicates",
+       x = "Modularity (Q)", y = "Frequency") +
+  annotate("text", x = consensus_result$modularity, y = 0,
+           label = sprintf("Consensus: %.3f", consensus_result$modularity),
+           vjust = -1, color = "red", size = 3) +
+  theme_minimal()
+
+ggsave("figures/network_topology/step03_modularity_histogram.pdf", p_hist, width = 7, height = 4)
 
 # Co-assignment heatmap (cluster rows/cols to highlight modules)
-# To make heatmap interpretable, we reorder nodes by consensus membership, placing nodes of same consensus module together.
 order_by_consensus <- names(sort(cons_membership))
 coassign_ordered <- coassign[order_by_consensus, order_by_consensus]
 
-# Use pheatmap for a compact annotated heatmap
-# Prepare annotation for rows/cols (consensus module)
-annotation_df <- data.frame(module = factor(cons_membership[order_by_consensus]))
+annotation_df <- data.frame(Module = factor(cons_membership[order_by_consensus]))
 rownames(annotation_df) <- order_by_consensus
 
-# Use pheatmap with no clustering (we already ordered by consensus)
-png(file.path(fig_dir, "coassignment_heatmap.png"), width = 1800, height = 1600, res = 200)
-pheatmap::pheatmap(coassign_ordered,
-                   cluster_rows = FALSE,
-                   cluster_cols = FALSE,
-                   show_rownames = FALSE,
-                   show_colnames = FALSE,
-                   annotation_row = annotation_df,
-                   annotation_col = annotation_df,
-                   color = colorRampPalette(c("white", "orange", "red"))(50),
-                   main = "Co-assignment matrix (ordered by consensus modules)")
-dev.off()
+p_heatmap <- pheatmap::pheatmap(coassign_ordered,
+                 cluster_rows = FALSE,
+                 cluster_cols = FALSE,
+                 show_rownames = FALSE,
+                 show_colnames = FALSE,
+                 annotation_row = annotation_df,
+                 annotation_col = annotation_df,
+                 color = colorRampPalette(c("white", "orange", "red"))(50),
+                 main = "Co-assignment matrix (ordered by consensus modules)",
+                 silent = TRUE)
 
-# Also save a PDF version
-pdf(file.path(fig_dir, "coassignment_heatmap.pdf"), width = 8, height = 7)
-pheatmap::pheatmap(coassign_ordered,
-                   cluster_rows = FALSE,
-                   cluster_cols = FALSE,
-                   show_rownames = FALSE,
-                   show_colnames = FALSE,
-                   annotation_row = annotation_df,
-                   annotation_col = annotation_df,
-                   color = colorRampPalette(c("white", "orange", "red"))(50),
-                   main = "Co-assignment matrix (ordered by consensus modules)")
-dev.off()
+ggsave("figures/network_topology/step03_coassignment_heatmap.pdf", p_heatmap$gtable,
+       width = 8, height = 7)
 
 # -----------------------------
-# Module size summary & per-node assignments
-# -----------------------------
-module_sizes_df <- as.data.frame(table(cons_membership), stringsAsFactors = FALSE)
-colnames(module_sizes_df) <- c("module", "size")
-module_sizes_df$module <- as.integer(as.character(module_sizes_df$module))
-module_sizes <- module_sizes_df %>% arrange(desc(size))
-write_csv(module_sizes, "results/phase_04/modularity/consensus_module_sizes.csv")
-
-node_assignments <- tibble(node_id = names(cons_membership),
-                           consensus_module = as.integer(cons_membership),
-                           node_type = ifelse(names(cons_membership) %in% fg_nodes$agent_id, "fg",
-                                              ifelse(names(cons_membership) %in% pyov_nodes$node_id, "pyov", "unknown")))
-write_csv(node_assignments, "results/phase_04/modularity/consensus_node_assignments.csv")
-
-# -----------------------------
-# Summary log & provenance
+# Generate comprehensive summary
 # -----------------------------
 summary_lines <- c(
-  "Phase 04 - Step 03: Modularity Analysis Summary",
+  "Phase 04 - Step 03: Modularity Analysis Summary (Minimal Output)",
   paste("Timestamp:", timestamp()),
   "",
-  sprintf("Replicates run: %d", n_replicates),
-  sprintf("Master seed: %s", master_seed),
-  sprintf("Modularity (replicates): mean=%.4f sd=%.4f min=%.4f max=%.4f",
-          mean(modularity_scores), sd(modularity_scores), min(modularity_scores), max(modularity_scores)),
-  sprintf("Consensus modules: %d", consensus_result$n_modules),
-  sprintf("Consensus modularity: %.4f", consensus_result$modularity),
+  sprintf("Network Summary:"),
+  sprintf("  Vertices: %d (%d FG, %d PYO)", vcount(g_combined),
+          sum(V(g_combined)$type == "fg"), sum(V(g_combined)$type == "pyov")),
+  sprintf("  Edges: %d", ecount(g_combined)),
+  sprintf("  Density: %.4f", graph.density(g_combined)),
   "",
-  "Files produced under results/phase_04/modularity/:",
-  " - modules_fg_raw_replicates.rds / modules_fg_raw_replicates_memberships.csv",
-  " - modularity_scores.csv",
-  " - coassignment_matrix.rds / coassignment_matrix.csv",
-  " - modules_fg_consensus.rds / modules_fg_consensus.csv",
-  " - consensus_module_sizes.csv",
-  " - consensus_node_assignments.csv",
-  paste(" - modularity_histogram:", file.path(fig_dir, "modularity_histogram.pdf")),
-  paste(" - coassignment_heatmap:", file.path(fig_dir, "coassignment_heatmap.png"), "/", file.path(fig_dir, "coassignment_heatmap.pdf")),
-  ""
+  sprintf("Replicate Analysis (n = %d replicates):", n_replicates),
+  sprintf("  Modularity mean ± SD: %.4f ± %.4f", mean(modularity_scores), sd(modularity_scores)),
+  sprintf("  Modularity range: %.4f - %.4f", min(modularity_scores), max(modularity_scores)),
+  sprintf("  Mean modules per replicate: %.1f", mean(sapply(partition_list, function(x) length(unique(x))))),
+  "",
+  sprintf("Consensus Partition:"),
+  sprintf("  Number of modules: %d", consensus_result$n_modules),
+  sprintf("  Consensus modularity: %.4f", consensus_result$modularity),
+  "",
+  "Module Sizes (descending order):",
+  paste(sprintf("  Module %d: %d nodes", module_sizes$module, module_sizes$size), collapse = "\n"),
+  "",
+  sprintf("Largest Module Properties:"),
+  sprintf("  Size: %d nodes (%.1f%% of network)", max(module_sizes$size),
+          100 * max(module_sizes$size) / vcount(g_combined)),
+  "",
+  "Interpretation:",
+  "  • High modularity (>0.3): Strong community structure present",
+  "  • Low modularity (<0.1): Weak or no community structure",
+  "  • High replicate variance: Algorithm instability or network ambiguity",
+  "  • Large dominant module: Possible hub-and-spoke structure",
+  "",
+  "Outputs:",
+  "  • figures/network_topology/step03_modularity_histogram.pdf",
+  "  • figures/network_topology/step03_coassignment_heatmap.pdf",
+  "  • docs/phase_04/logs/step03_modularity_summary.txt",
+  "",
+  "Note: RDS/CSV files intentionally omitted (compact output mode)",
+  "",
+  "Ready for subsequent topology analyses."
 )
 
 writeLines(summary_lines, "docs/phase_04/logs/step03_modularity_summary.txt")
-writeLines(capture.output(sessionInfo()), "docs/phase_04/logs/step03_session_info.txt")
+
+# Display final summary
 cat(paste(summary_lines, collapse = "\n"), "\n")
 
-message("Step 03 complete. Review results/phase_04/modularity/ and docs/phase_04/logs/step03_modularity_summary.txt")
+# Save session info
+writeLines(capture.output(sessionInfo()), "docs/phase_04/logs/step03_session_info.txt")
+
+cat("\nStep 03 complete. Modularity analysis finished.\n")
+message(sprintf("Summary saved to: docs/phase_04/logs/step03_modularity_summary.txt"))
+cat(sprintf("Visualizations: %s\n", paste(list.files("figures/network_topology", pattern = "^step03_.*\\.pdf$", full.names = TRUE), collapse = ", ")))
