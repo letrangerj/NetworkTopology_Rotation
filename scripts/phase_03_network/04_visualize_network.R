@@ -23,25 +23,25 @@ suppressPackageStartupMessages({
 set.seed(2025)
 
 # Paths
-img_dir  <- "figures/network"
+img_dir <- "figures/network"
 docs_dir <- "docs/phase_03"
 data_edges <- "data/interim/edges_functional_groups_conservative.csv"
-data_pyov  <- "data/interim/nodes_pyoverdines_conservative.csv"
-data_fg    <- "data/interim/nodes_functional_groups_conservative.csv"
+data_pyov <- "data/interim/nodes_pyoverdines_conservative.csv"
+data_fg <- "data/interim/nodes_functional_groups_conservative.csv"
 
 if (!dir.exists(img_dir)) dir.create(img_dir, recursive = TRUE, showWarnings = FALSE)
 if (!dir.exists(docs_dir)) dir.create(docs_dir, recursive = TRUE, showWarnings = FALSE)
 
 # Read inputs
 edges <- read.csv(data_edges, stringsAsFactors = FALSE)
-pyov  <- read.csv(data_pyov,  stringsAsFactors = FALSE)
-fg    <- read.csv(data_fg,    stringsAsFactors = FALSE)
+pyov <- read.csv(data_pyov, stringsAsFactors = FALSE)
+fg <- read.csv(data_fg, stringsAsFactors = FALSE)
 
 # Build vertex tables
 vertex_pyov <- data.frame(
   name = pyov$node_id,
   type = "pyov",
-  color = "orange",                                   # default pyov color
+  color = "orange", # default pyov color
   size = pmax(2, sqrt(pyov$matrix_index) * 1.4),
   stringsAsFactors = FALSE
 )
@@ -59,7 +59,7 @@ vertex_fg <- data.frame(
   color = ifelse(
     fg$strategy == "Single-receptor producer", "green",
     ifelse(
-      fg$strategy == "Multi-producer", "orange",
+      fg$strategy == "Multi-producer", "magenta",
       ifelse(
         fg$strategy == "Multi-receptor producer", "blue",
         ifelse(
@@ -92,8 +92,8 @@ coords <- layout_with_fr(g, niter = 500)
 
 node_df <- data.frame(
   name = V(g)$name,
-  x = coords[,1],
-  y = coords[,2],
+  x = coords[, 1],
+  y = coords[, 2],
   type = as.character(V(g)$type),
   color = as.character(V(g)$color),
   size = as.numeric(V(g)$size),
@@ -109,7 +109,7 @@ edge_coords <- merge(edge_coords, node_df, by.x = "to", by.y = "name", suffixes 
 shorten_segments_vec <- function(df, start_shrink = 0.03, end_shrink_default = 0.10) {
   dx <- df$x_to - df$x
   dy <- df$y_to - df$y
-  d <- sqrt(dx*dx + dy*dy)
+  d <- sqrt(dx * dx + dy * dy)
   d[d == 0] <- 1e-9
   # choose end_shrink per-target-type (FG targets may need more clearance)
   end_shrink <- ifelse(!is.null(df$type_to) & df$type_to == "fg", 0.12, end_shrink_default)
@@ -149,11 +149,11 @@ legend_labels <- c(
   "Pyoverdine (lock-key) group"
 )
 legend_shapes <- c(21, 21, 21, 21, 21, 23)
-legend_fills  <- c("green", "orange", "blue", "purple", "red", "orange")
+legend_fills <- c("green", "magenta", "blue", "purple", "red", "orange")
 
 legend_df <- data.frame(
   lx = rep(x_legend, length(legend_labels)),
-  ly = y_top - (0:(length(legend_labels)-1)) * vsep,
+  ly = y_top - (0:(length(legend_labels) - 1)) * vsep,
   label = factor(legend_labels, levels = legend_labels),
   shape = legend_shapes,
   fill = legend_fills,
@@ -163,22 +163,32 @@ legend_df <- data.frame(
 # Build plot: draw edges first, then nodes (so nodes sit cleanly above edges)
 p <- ggplot() +
   # edges drawn FIRST (below nodes) to avoid overlap ambiguity
-  { if (nrow(edge_prod) > 0)
-    geom_segment(
-      data = edge_prod,
-      aes(x = x_s, y = y_s, xend = x_e, yend = y_e),
-      colour = "gray30", alpha = 0.35, linewidth = 0.25,
-      arrow = arrow(length = unit(1.8, "mm"), type = "closed", angle = 15),
-      lineend = "round"
-    ) else NULL } +
-  { if (nrow(edge_util) > 0)
-    geom_segment(
-      data = edge_util,
-      aes(x = x_s, y = y_s, xend = x_e, yend = y_e),
-      colour = "gray50", alpha = 0.35, linewidth = 0.25,
-      arrow = arrow(length = unit(1.8, "mm"), type = "closed", angle = 15),
-      lineend = "round"
-    ) else NULL } +
+  {
+    if (nrow(edge_prod) > 0) {
+      geom_segment(
+        data = edge_prod,
+        aes(x = x_s, y = y_s, xend = x_e, yend = y_e),
+        colour = "gray30", alpha = 0.35, linewidth = 0.25,
+        arrow = arrow(length = unit(1.8, "mm"), type = "closed", angle = 15),
+        lineend = "round"
+      )
+    } else {
+      NULL
+    }
+  } +
+  {
+    if (nrow(edge_util) > 0) {
+      geom_segment(
+        data = edge_util,
+        aes(x = x_s, y = y_s, xend = x_e, yend = y_e),
+        colour = "gray50", alpha = 0.35, linewidth = 0.25,
+        arrow = arrow(length = unit(1.8, "mm"), type = "closed", angle = 15),
+        lineend = "round"
+      )
+    } else {
+      NULL
+    }
+  } +
   # nodes (FG) drawn AFTER edges
   geom_point(
     data = node_df[node_df$type == "fg", , drop = FALSE],
