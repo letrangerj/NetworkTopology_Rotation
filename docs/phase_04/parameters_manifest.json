@@ -26,8 +26,8 @@
         "sensitivity": 8
     },
     "modularity_replicates": {
-        "pilot": 20,
-        "final": 100
+        "pilot": 50,
+        "final": 200
     },
     "null_model_N": {
         "pilot": 100,

@@ -327,7 +327,9 @@ safe_dir_create("figures/network_topology")
 safe_dir_create("docs/phase_04/logs")
 
 cat("=== Phase 04 - Step 03: Layer-Specific Bipartite Modularity Analysis ===\n")
-cat(paste("Timestamp:", timestamp(), "\n\n"))
+start_time <- Sys.time()
+cat(paste("Timestamp:", timestamp(), "\n"))
+cat(paste("Run start:", format(start_time, "%Y-%m-%d %H:%M:%S %Z"), "\n\n"))
 
 # -----------------------------
 # Load parameters from manifest
@@ -422,30 +424,46 @@ for (layer in layers) {
     next
   }
 
-  # 3. Run replicate modularity analysis
+  # 3. Run replicate modularity analysis (with timing)
   cat(sprintf("Running %d replicates of modularity analysis...\n", n_replicates_pilot))
 
   replicate_results <- list()
   Q_values <- numeric(n_replicates_pilot)
+  replicate_times <- numeric(n_replicates_pilot)
+
+  layer_start_time <- Sys.time()
 
   for (rep in 1:n_replicates_pilot) {
     rep_seed <- master_seed + rep * 1000 # Deterministic seed derivation
 
-    if (rep %% 10 == 0 || rep <= 5) {
-      cat(sprintf("  Replicate %d/%d (seed=%d)...\n", rep, n_replicates_pilot, rep_seed))
-    }
+    cat(sprintf("  Replicate %d/%d (seed=%d)...\n", rep, n_replicates_pilot, rep_seed))
+    rep_start_time <- Sys.time()
 
     module_result <- compute_modularity_safe(incidence, seed = rep_seed)
     module_info <- extract_module_info(module_result, incidence, layer)
 
+    rep_end_time <- Sys.time()
+    rep_elapsed <- as.numeric(difftime(rep_end_time, rep_start_time, units = "secs"))
+    replicate_times[rep] <- rep_elapsed
+
+    cat(sprintf("    Replicate %d completed in %.2f seconds\n", rep, rep_elapsed))
+
     replicate_results[[rep]] <- list(
       replicate = rep,
       seed = rep_seed,
-      module_info = module_info
+      module_info = module_info,
+      time_sec = rep_elapsed
     )
 
     Q_values[rep] <- if (!is.na(module_info$Q)) module_info$Q else NA
   }
+
+  layer_end_time <- Sys.time()
+  layer_elapsed <- as.numeric(difftime(layer_end_time, layer_start_time, units = "secs"))
+  cat(sprintf(
+    "Layer %s completed in %.2f seconds (%.2f sec per replicate on average)\n",
+    layer, layer_elapsed, mean(replicate_times, na.rm = TRUE)
+  ))
 
   # 4. Compute stability metrics
   cat("Computing stability metrics...\n")
@@ -662,3 +680,34 @@ cat("\nStep 03 complete. Layer-specific modularity analysis finished.\n")
 cat("Summary: docs/phase_04/logs/step03_modularity_summary.txt\n")
 cat("Check stability warnings and module assignments for next steps.\n")
 
+# Record total and per-layer timing to a small timing log
+end_time <- Sys.time()
+total_elapsed <- as.numeric(difftime(end_time, start_time, units = "secs"))
+
+timing_lines <- c(
+  paste("Run start:", format(start_time, "%Y-%m-%d %H:%M:%S %Z")),
+  paste("Run end:  ", format(end_time, "%Y-%m-%d %H:%M:%S %Z")),
+  sprintf("Total elapsed (sec): %.2f", total_elapsed),
+  ""
+)
+
+for (layer in names(layer_results)) {
+  lr <- layer_results[[layer]]
+  if (!is.null(lr$incidence_dims)) {
+    layer_time_msg <- if (!is.null(lr$layer_time)) {
+      sprintf("Layer %s elapsed (sec): %.2f", layer, lr$layer_time)
+    } else if (!is.null(lr$Q_stats) && !is.null(lr$n_replicates)) {
+      # approximate if explicit layer time not recorded
+      sprintf("Layer %s (approx) elapsed per-replicate (sec): unknown", layer)
+    } else {
+      sprintf("Layer %s: no timing info", layer)
+    }
+    timing_lines <- c(timing_lines, layer_time_msg)
+  } else {
+    timing_lines <- c(timing_lines, sprintf("Layer %s: skipped or failed", layer))
+  }
+}
+
+timing_file <- "docs/phase_04/logs/step03_timing.txt"
+writeLines(timing_lines, timing_file)
+cat("Timing summary saved to:", timing_file, "\n")
