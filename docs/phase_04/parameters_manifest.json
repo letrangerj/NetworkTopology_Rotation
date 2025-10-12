@@ -29,6 +29,10 @@
         "pilot": 50,
         "final": 200
     },
+    "mc_cores": 4,
+    "parallel": {
+        "mc_cores": 4
+    },
     "null_model_N": {
         "pilot": 100,
         "final": 1000

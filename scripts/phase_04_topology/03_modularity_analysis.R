@@ -598,31 +598,12 @@ for (layer in layers) {
   if (result$status == "success") {
     summary_lines <- c(
       summary_lines,
-      sprintf(
-        "  Matrix dimensions: %d × %d (%.1f%% fill)",
-        result$incidence_dims[1], result$incidence_dims[2],
-        100 * result$incidence_fill
-      ),
-      sprintf(
-        "  Nodes removed: %d FGs, %d PYOVs",
-        result$removal_summary$zero_rows_removed,
-        result$removal_summary$zero_cols_removed
-      ),
-      sprintf(
-        "  Representative Q: %.3f (%d modules)",
-        result$representative_Q, result$representative_modules
-      ),
+      sprintf("  Matrix dimensions: %d × %d (%.1f%% fill)", result$incidence_dims[1], result$incidence_dims[2], 100 * result$incidence_fill),
+      sprintf("  Nodes removed: %d FGs, %d PYOVs", result$removal_summary$zero_rows_removed, result$removal_summary$zero_cols_removed),
+      sprintf("  Representative Q: %.3f (%d modules)", result$representative_Q, result$representative_modules),
       sprintf("  Best Q: %.3f", result$best_Q),
-      sprintf(
-        "  Q stability: mean=%.3f, sd=%.3f, CV=%.3f (%d valid)",
-        result$Q_stats$mean, result$Q_stats$sd, result$Q_stats$cv,
-        result$Q_stats$n_valid
-      ),
-      sprintf(
-        "  Partition similarity: mean_ARI=%.3f (IQR: %.3f-%.3f)",
-        result$ari_stats["mean"], result$ari_stats["iqr_lower"],
-        result$ari_stats["iqr_upper"]
-      )
+      sprintf("  Q stability: mean=%.3f, sd=%.3f, CV=%.3f (%d valid)", result$Q_stats$mean, result$Q_stats$sd, result$Q_stats$cv, result$Q_stats$n_valid),
+      sprintf("  Partition similarity: mean_ARI=%.3f (IQR: %.3f-%.3f)", result$ari_stats["mean"], result$ari_stats["iqr_lower"], result$ari_stats["iqr_upper"])
     )
 
     # Stability warnings
