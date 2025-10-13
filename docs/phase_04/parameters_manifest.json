@@ -26,7 +26,7 @@
         "sensitivity": 8
     },
     "modularity_replicates": {
-        "pilot": 50,
+        "pilot": 20,
         "final": 200
     },
     "mc_cores": 4,

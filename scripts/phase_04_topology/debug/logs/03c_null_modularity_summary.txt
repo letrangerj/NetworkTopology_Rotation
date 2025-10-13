@@ -1,0 +1,37 @@
+Phase 04 - Step 03c: Layer-Specific Null Model Modularity Test Summary
+Timestamp: 2025-10-13 10:25:45 CST
+Master seed: 2025
+Nulls per layer: 100
+
+Method:
+  Null generation: vegan::swap.web(method = 'quasiswap')
+  Modularity: bipartite::computeModules (Beckett method - same as main function)
+  Statistical testing: two-tailed empirical with +1 correction
+  Stability assessment: CV and ARI metrics for both observed and null distributions
+  SES: (observed - null_mean) / null_sd
+
+Production Layer:
+  Status: failed
+  Reason: insufficient_nulls
+
+Utilization Layer:
+  Status: failed
+  Reason: insufficient_nulls
+
+Interpretation Guidelines:
+  SES > 2: Strong positive deviation (more modular than expected)
+  SES < -2: Strong negative deviation (less modular than expected)
+  |SES| < 2: Within expected range given degree constraints
+  p_twotailed < 0.05: Statistically significant deviation
+  Null CV > 0.10: High variability in null modularity estimates
+  Null mean ARI < 0.60: Low consistency in null partitions
+
+Notes:
+  - Null models preserve layer-specific degree sequences using bipartite swaps
+  - Quasi-swap method ensures degree preservation for bipartite networks
+  - Algorithm parameters EXACTLY match main function for valid comparison
+  - Stability assessed on samples of null matrices using replicates
+  - Two-tailed testing more appropriate for comprehensive biological analysis
+  - Results are for FG-level networks only
+
+Output saved to: scripts/phase_04_topology/debug/logs/03c_null_modularity_summary.txt

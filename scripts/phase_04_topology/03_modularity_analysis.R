@@ -83,6 +83,10 @@ remove_zero_degree <- function(incidence, layer_name) {
   zero_rows <- which(row_degrees == 0)
   zero_cols <- which(col_degrees == 0)
 
+  # Capture names BEFORE removal for accurate logging
+  zero_row_names <- if (length(zero_rows) > 0) rownames(incidence)[zero_rows] else character(0)
+  zero_col_names <- if (length(zero_cols) > 0) colnames(incidence)[zero_cols] else character(0)
+
   # Remove zero-degree nodes
   if (length(zero_rows) > 0) {
     incidence <- incidence[-zero_rows, , drop = FALSE]
@@ -100,8 +104,8 @@ remove_zero_degree <- function(incidence, layer_name) {
     final_dims = final_dims,
     zero_rows_removed = length(zero_rows),
     zero_cols_removed = length(zero_cols),
-    zero_row_names = if (length(zero_rows) > 0) rownames(incidence)[zero_rows] else character(0),
-    zero_col_names = if (length(zero_cols) > 0) colnames(incidence)[zero_cols] else character(0)
+    zero_row_names = zero_row_names,
+    zero_col_names = zero_col_names
   )
 
   return(list(incidence = incidence, removal_summary = removal_summary))
@@ -138,45 +142,91 @@ extract_module_info <- function(module_result, incidence, layer_name) {
     return(list(Q = NA, modules = NULL, n_modules = 0))
   }
 
-  # Extract modularity score
-  Q <- module_result@likelihood
+  # Extract modularity score (S4/S3 tolerant)
+  Q <- tryCatch(
+    {
+      if (isS4(module_result) && "likelihood" %in% slotNames(module_result)) {
+        as.numeric(slot(module_result, "likelihood"))
+      } else if (!is.null(module_result$likelihood)) {
+        as.numeric(module_result$likelihood)
+      } else {
+        NA_real_
+      }
+    },
+    error = function(e) NA_real_
+  )
 
-  # Extract module assignments
-  # module_result@modules is typically a list with $`1` containing the partition
-  if (length(module_result@modules) > 0 && !is.null(module_result@modules[[1]])) {
-    partition <- module_result@modules[[1]]
+  # Obtain the modules × nodes numeric matrix from the result
+  mods_mat <- tryCatch(
+    {
+      if (isS4(module_result) && "modules" %in% slotNames(module_result)) {
+        slot(module_result, "modules")
+      } else {
+        module_result$modules
+      }
+    },
+    error = function(e) NULL
+  )
 
-    # Create node assignments
-    row_names <- rownames(incidence)
-    col_names <- colnames(incidence)
-    n_rows <- length(row_names)
-    n_cols <- length(col_names)
+  if (is.null(mods_mat) || !is.matrix(mods_mat) || !is.numeric(mods_mat)) {
+    return(list(Q = Q, modules = NULL, n_modules = 0))
+  }
 
-    # Partition should have length = n_rows + n_cols
-    if (length(partition) != (n_rows + n_cols)) {
-      warning("Partition length doesn't match matrix dimensions")
-      return(list(Q = Q, modules = NULL, n_modules = 0))
+  # Prepare incidence node info
+  row_names <- rownames(incidence)
+  col_names <- colnames(incidence)
+  n_rows <- length(row_names)
+  n_cols <- length(col_names)
+  n_inc_nodes <- n_rows + n_cols
+
+  # Prefer name-based alignment if column names of mods_mat are available and match
+  mod_colnames <- colnames(mods_mat)
+  if (!is.null(mod_colnames)) {
+    fg_mask <- mod_colnames %in% row_names
+    py_mask <- mod_colnames %in% col_names
+    if (sum(fg_mask) == n_rows && sum(py_mask) == n_cols) {
+      assign_vec <- max.col(mods_mat, ties.method = "first")
+      df_all <- data.frame(node_name = mod_colnames, module = assign_vec, stringsAsFactors = FALSE)
+      df_fg <- df_all[df_all$node_name %in% row_names, , drop = FALSE]
+      df_py <- df_all[df_all$node_name %in% col_names, , drop = FALSE]
+      df_fg <- df_fg[match(row_names, df_fg$node_name), , drop = FALSE]
+      df_py <- df_py[match(col_names, df_py$node_name), , drop = FALSE]
+      if (!any(is.na(df_fg$module)) && !any(is.na(df_py$module))) {
+        modules_df <- data.frame(
+          node_id = c(df_fg$node_name, df_py$node_name),
+          node_type = c(rep("FG", nrow(df_fg)), rep("PYOV", nrow(df_py))),
+          module_id = c(as.integer(df_fg$module), as.integer(df_py$module)),
+          layer = layer_name,
+          stringsAsFactors = FALSE
+        )
+        return(list(Q = Q, modules = modules_df, n_modules = length(unique(modules_df$module_id))))
+      }
     }
+  }
 
-    # Split partition into row and column modules
-    row_modules <- partition[1:n_rows]
-    col_modules <- partition[(n_rows + 1):(n_rows + n_cols)]
-
-    # Create module assignment table
+  # Index-based fallback: trim small surplus columns (e.g., +1 or +2) if present
+  n_mod_cols <- ncol(mods_mat)
+  trim_cols <- 0L
+  if (n_mod_cols > n_inc_nodes && (n_mod_cols - n_inc_nodes) <= 2L) {
+    trim_cols <- n_mod_cols - n_inc_nodes
+  }
+  if ((n_mod_cols - trim_cols) == n_inc_nodes) {
+    mods_core <- if (trim_cols > 0) mods_mat[, 1:(n_inc_nodes), drop = FALSE] else mods_mat
+    assign_vec <- max.col(mods_core, ties.method = "first")
+    row_modules <- assign_vec[1:n_rows]
+    col_modules <- assign_vec[(n_rows + 1):(n_rows + n_cols)]
     modules_df <- data.frame(
       node_id = c(row_names, col_names),
       node_type = c(rep("FG", n_rows), rep("PYOV", n_cols)),
-      module_id = c(row_modules, col_modules),
+      module_id = c(as.integer(row_modules), as.integer(col_modules)),
       layer = layer_name,
       stringsAsFactors = FALSE
     )
-
-    n_modules <- length(unique(partition))
-
-    return(list(Q = Q, modules = modules_df, n_modules = n_modules))
-  } else {
-    return(list(Q = Q, modules = NULL, n_modules = 0))
+    return(list(Q = Q, modules = modules_df, n_modules = length(unique(modules_df$module_id))))
   }
+
+  # Could not align automatically
+  return(list(Q = Q, modules = NULL, n_modules = 0))
 }
 
 # Compute pairwise ARI between partitions
@@ -345,7 +395,7 @@ if (file.exists(manifest_json)) {
 
 # Parameters with defaults
 master_seed <- if (!is.null(manifest$master_seed)) manifest$master_seed else 2025
-n_replicates_pilot <- if (!is.null(manifest$modularity_replicates$pilot)) manifest$modularity_replicates$pilot else 50
+n_replicates_pilot <- if (!is.null(manifest$modularity_replicates$pilot)) manifest$modularity_replicates$pilot else 20
 n_replicates_final <- if (!is.null(manifest$modularity_replicates$final)) manifest$modularity_replicates$final else 100
 
 cat(sprintf("Parameters: master_seed=%d, n_replicates=%d\n", master_seed, n_replicates_pilot))
@@ -527,7 +577,7 @@ for (layer in layers) {
   cat("Saving outputs...\n")
 
   # Save module assignments (representative partition)
-  if (!is.null(representative_partition$modules)) {
+  if (!is.null(representative_partition$modules) && representative_partition$n_modules >= 1) {
     assignments_file <- paste0("results/phase_04/modularity/module_assignments_", layer, ".rds")
     saveRDS(representative_partition$modules, assignments_file)
   }
@@ -537,7 +587,7 @@ for (layer in layers) {
   write.csv(replicate_Q_df, replicate_Q_file, row.names = FALSE)
 
   # Create and save composition plot
-  if (!is.null(representative_partition$modules)) {
+  if (!is.null(representative_partition$modules) && representative_partition$n_modules >= 1) {
     p_composition <- plot_module_composition(representative_partition$modules, layer, representative_Q)
     composition_file <- paste0("figures/network_topology/modularity_", layer, "_composition.pdf")
     ggsave(composition_file, p_composition, width = 10, height = 6)

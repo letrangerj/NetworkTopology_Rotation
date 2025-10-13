@@ -1,0 +1,80 @@
+=== 03d Probe: Module Extraction Debug ===
+Timestamp: 2025-10-13 10:57:48 CST
+
+
+--- Layer: production ---
+Matrix pre-filter: 177 × 93, edges=175
+Zero-degree removed: rows=43, cols=0
+Matrix post-filter: 134 × 93, edges=175, fill=0.014
+Running computeModules (seed=2125)...
+module_result class/slots:
+  class: moduleWeb
+  slotNames: originalWeb, moduleWeb, orderA, orderB, modules, likelihood
+Structure of 'modules' container (str):
+   num [1:36, 1:229] 0 1 1 1 1 1 1 1 1 1 ...
+   - attr(*, "dimnames")=List of 2
+Structure of listModuleInformation(module_result) (str):
+  List of 2
+   $ :List of 1
+   $ :List of 35
+Extraction strategy: listModuleInformation_unhelpful
+Notes: listModuleInformation() returned non-data.frame modules or missing expected fields
+Q (likelihood): 0.861714
+Failed to extract module assignments using all strategies.
+
+--- Layer: utilization ---
+Matrix pre-filter: 177 × 93, edges=2238
+Zero-degree removed: rows=4, cols=0
+Matrix post-filter: 173 × 93, edges=2238, fill=0.139
+Running computeModules (seed=2225)...
+module_result class/slots:
+  class: moduleWeb
+  slotNames: originalWeb, moduleWeb, orderA, orderB, modules, likelihood
+Structure of 'modules' container (str):
+   num [1:8, 1:268] 0 1 1 1 1 1 1 1 1 0 ...
+   - attr(*, "dimnames")=List of 2
+Structure of listModuleInformation(module_result) (str):
+  List of 2
+   $ :List of 1
+   $ :List of 7
+Extraction strategy: listModuleInformation_unhelpful
+Notes: listModuleInformation() returned non-data.frame modules or missing expected fields
+Q (likelihood): 0.439438
+Failed to extract module assignments using all strategies.
+
+Session Info:
+R version 4.5.1 (2025-06-13)
+Platform: x86_64-redhat-linux-gnu
+Running under: Fedora Linux 42 (WSL)
+
+Matrix products: default
+BLAS/LAPACK: FlexiBLAS OPENBLAS-OPENMP;  LAPACK version 3.12.0
+
+locale:
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+ [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+
+time zone: Asia/Taipei
+tzcode source: system (glibc)
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] bipartite_2.23        vegan_2.7-1           permute_0.9-8        
+[4] sna_2.8               network_1.19.0        statnet.common_4.12.0
+[7] dplyr_1.1.4           Matrix_1.7-4         
+
+loaded via a namespace (and not attached):
+ [1] vctrs_0.6.5        nlme_3.1-168       cli_3.6.5          rlang_1.1.6       
+ [5] generics_0.1.4     dotCall64_1.2      glue_1.8.0         fields_17.1       
+ [9] grid_4.5.1         tibble_3.3.0       MASS_7.3-65        lifecycle_1.0.4   
+[13] cluster_2.1.8.1    compiler_4.5.1     igraph_2.1.4       RColorBrewer_1.1-3
+[17] coda_0.19-4.1      Rcpp_1.1.0         pkgconfig_2.0.3    mgcv_1.9-3        
+[21] maps_3.4.3         lattice_0.22-7     viridisLite_0.4.2  R6_2.6.1          
+[25] tidyselect_1.2.1   pillar_1.11.1      parallel_4.5.1     splines_4.5.1     
+[29] spam_2.11-1        magrittr_2.0.4    

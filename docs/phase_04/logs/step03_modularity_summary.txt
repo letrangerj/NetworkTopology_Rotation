@@ -1,42 +1,49 @@
-Phase 04 - Step 03: Modularity Analysis Summary (Minimal Output)
-Timestamp: 2025-10-09 19:34:40 CST
+Phase 04 - Step 03: Layer-Specific Bipartite Modularity Analysis Summary
+Timestamp: 2025-10-13 03:42:02 CST
+Master seed: 2025
+Replicates per layer: 50
 
-Network Summary:
-  Vertices: 227 (134 FG, 93 PYO)
-  Edges: 175
-  Density: 0.0068
+Method:
+  Optimizer: bipartite::computeModules (Beckett method)
+  Layers analyzed: Production and Utilization (separate)
+  Representative selection: Medoid partition (minimum mean VI)
+  Stability metrics: Q coefficient of variation, pairwise ARI
 
-Replicate Analysis (n = 200 replicates):
-  Modularity mean ± SD: 0.9239 ± 0.0007
-  Modularity range: 0.9205 - 0.9241
-  Mean modules per replicate: 72.0
+Production Layer:
+  Status: success
+  Matrix dimensions: 134 × 93 (1.4% fill)
+  Nodes removed: 43 FGs, 0 PYOVs
+  Representative Q: 0.865 (0 modules)
+  Best Q: 0.879
+  Q stability: mean=0.866, sd=0.006, CV=0.007 (50 valid)
+  Partition similarity: mean_ARI=NaN (IQR: NA-NA)
 
-Consensus Partition:
-  Number of modules: 5
-  Consensus modularity: 0.0231
-  Consensus modularity: 0.0235
-
-Module Sizes (descending order):
-  Module 1: 59 nodes
-  Module 3: 53 nodes
-  Module 4: 48 nodes
-  Module 2: 35 nodes
-  Module 5: 32 nodes
-
-Largest Module Properties:
-  Size: 59 nodes (26.0% of network)
+Utilization Layer:
+  Status: success
+  Matrix dimensions: 173 × 93 (13.9% fill)
+  Nodes removed: 4 FGs, 0 PYOVs
+  Representative Q: 0.439 (0 modules)
+  Best Q: 0.440
+  Q stability: mean=0.439, sd=0.001, CV=0.002 (50 valid)
+  Partition similarity: mean_ARI=NaN (IQR: NA-NA)
 
 Interpretation:
-  • High modularity (>0.3): Strong community structure present
-  • Low modularity (<0.1): Weak or no community structure
-  • High replicate variance: Algorithm instability or network ambiguity
-  • Large dominant module: Possible hub-and-spoke structure
+  Q > 0.3: Strong modularity, distinct community structure
+  Q 0.1-0.3: Moderate modularity, some community organization
+  Q < 0.1: Weak modularity, close to random structure
+  CV > 0.10: Optimizer instability (consider more replicates)
+  mean ARI < 0.60: Low partition consistency
 
-Outputs:
-  • figures/network_topology/step03_modularity_histogram.pdf
-  • figures/network_topology/step03_coassignment_heatmap.pdf
-  • docs/phase_04/logs/step03_modularity_summary.txt
+Outputs Saved:
+  Module assignments: results/phase_04/modularity/module_assignments_<layer>.rds
+  Replicate Q values: results/phase_04/modularity/replicate_Q_<layer>.csv
+  Composition plots: figures/network_topology/modularity_<layer>_composition.pdf
+  Summary: docs/phase_04/logs/step03_modularity_summary.txt
+  Session info: docs/phase_04/logs/step03_session_info.txt
 
-Note: RDS/CSV files intentionally omitted (compact output mode)
+Next Steps:
+  - If stability warnings present, consider rerunning with more replicates
+  - For significance testing, run debug null script for relevant layers
+  - For exploratory union analysis, run additional union script
 
-Ready for subsequent topology analyses.
+Ready for subsequent analyses.
