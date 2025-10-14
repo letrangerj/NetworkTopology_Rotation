@@ -33,11 +33,7 @@ suppressPackageStartupMessages({
   library(dplyr)
   library(bipartite)
   library(jsonlite)
-  if (!require(mclust, quietly = TRUE)) {
-    message("Installing mclust for ARI computation...")
-    install.packages("mclust", repos = "https://cran.r-project.org/")
-    library(mclust)
-  }
+  library(mclust)
 })
 
 # -----------------------------
@@ -136,13 +132,16 @@ compute_modularity_safe <- function(incidence, seed = NULL) {
   return(result)
 }
 
-# Extract module information from bipartite result
+
 extract_module_info <- function(module_result, incidence, layer_name) {
   if (is.null(module_result)) {
     return(list(Q = NA, modules = NULL, n_modules = 0))
   }
 
+
+
   # Extract modularity score (S4/S3 tolerant)
+
   Q <- tryCatch(
     {
       if (isS4(module_result) && "likelihood" %in% slotNames(module_result)) {
@@ -156,7 +155,9 @@ extract_module_info <- function(module_result, incidence, layer_name) {
     error = function(e) NA_real_
   )
 
-  # Obtain the modules × nodes numeric matrix from the result
+
+
+  # Retrieve core slots
   mods_mat <- tryCatch(
     {
       if (isS4(module_result) && "modules" %in% slotNames(module_result)) {
@@ -168,66 +169,106 @@ extract_module_info <- function(module_result, incidence, layer_name) {
     error = function(e) NULL
   )
 
+  orderA <- tryCatch(
+    {
+      if (isS4(module_result) && "orderA" %in% slotNames(module_result)) {
+        slot(module_result, "orderA")
+      } else {
+        module_result$orderA
+      }
+    },
+    error = function(e) NULL
+  )
+  orderB <- tryCatch(
+    {
+      if (isS4(module_result) && "orderB" %in% slotNames(module_result)) {
+        slot(module_result, "orderB")
+      } else {
+        module_result$orderB
+      }
+    },
+    error = function(e) NULL
+  )
+
   if (is.null(mods_mat) || !is.matrix(mods_mat) || !is.numeric(mods_mat)) {
     return(list(Q = Q, modules = NULL, n_modules = 0))
   }
 
-  # Prepare incidence node info
-  row_names <- rownames(incidence)
-  col_names <- colnames(incidence)
-  n_rows <- length(row_names)
-  n_cols <- length(col_names)
-  n_inc_nodes <- n_rows + n_cols
 
-  # Prefer name-based alignment if column names of mods_mat are available and match
-  mod_colnames <- colnames(mods_mat)
-  if (!is.null(mod_colnames)) {
-    fg_mask <- mod_colnames %in% row_names
-    py_mask <- mod_colnames %in% col_names
-    if (sum(fg_mask) == n_rows && sum(py_mask) == n_cols) {
-      assign_vec <- max.col(mods_mat, ties.method = "first")
-      df_all <- data.frame(node_name = mod_colnames, module = assign_vec, stringsAsFactors = FALSE)
-      df_fg <- df_all[df_all$node_name %in% row_names, , drop = FALSE]
-      df_py <- df_all[df_all$node_name %in% col_names, , drop = FALSE]
-      df_fg <- df_fg[match(row_names, df_fg$node_name), , drop = FALSE]
-      df_py <- df_py[match(col_names, df_py$node_name), , drop = FALSE]
-      if (!any(is.na(df_fg$module)) && !any(is.na(df_py$module))) {
-        modules_df <- data.frame(
-          node_id = c(df_fg$node_name, df_py$node_name),
-          node_type = c(rep("FG", nrow(df_fg)), rep("PYOV", nrow(df_py))),
-          module_id = c(as.integer(df_fg$module), as.integer(df_py$module)),
-          layer = layer_name,
-          stringsAsFactors = FALSE
-        )
-        return(list(Q = Q, modules = modules_df, n_modules = length(unique(modules_df$module_id))))
-      }
-    }
-  }
 
-  # Index-based fallback: trim small surplus columns (e.g., +1 or +2) if present
+  # Incidence node info
+  inc_row_names <- rownames(incidence)
+
+  inc_col_names <- colnames(incidence)
+
+  n_rows <- length(inc_row_names)
+
+  n_cols <- length(inc_col_names)
+
+
+  # Determine expected node counts based on orderA/orderB (fallback to incidence dims)
+  nA <- if (!is.null(orderA)) length(orderA) else n_rows
+  nB <- if (!is.null(orderB)) length(orderB) else n_cols
+  n_inc_nodes <- nA + nB
+
+  # Choose usable columns from modules matrix:
+  # - exact nA+nB, or
+  # - nA+nB+2 (drop last 2 trailing meta columns), or
+  # - if more than required, take first nA+nB
   n_mod_cols <- ncol(mods_mat)
-  trim_cols <- 0L
-  if (n_mod_cols > n_inc_nodes && (n_mod_cols - n_inc_nodes) <= 2L) {
-    trim_cols <- n_mod_cols - n_inc_nodes
-  }
-  if ((n_mod_cols - trim_cols) == n_inc_nodes) {
-    mods_core <- if (trim_cols > 0) mods_mat[, 1:(n_inc_nodes), drop = FALSE] else mods_mat
-    assign_vec <- max.col(mods_core, ties.method = "first")
-    row_modules <- assign_vec[1:n_rows]
-    col_modules <- assign_vec[(n_rows + 1):(n_rows + n_cols)]
-    modules_df <- data.frame(
-      node_id = c(row_names, col_names),
-      node_type = c(rep("FG", n_rows), rep("PYOV", n_cols)),
-      module_id = c(as.integer(row_modules), as.integer(col_modules)),
-      layer = layer_name,
-      stringsAsFactors = FALSE
-    )
-    return(list(Q = Q, modules = modules_df, n_modules = length(unique(modules_df$module_id))))
+  if (n_mod_cols == n_inc_nodes) {
+    usable_cols <- 1:n_inc_nodes
+  } else if (n_mod_cols == (n_inc_nodes + 2L)) {
+    usable_cols <- 1:n_inc_nodes
+  } else if (n_mod_cols > n_inc_nodes) {
+    usable_cols <- 1:n_inc_nodes
+  } else {
+    # If columns are fewer than required, bail out with diagnostics
+    cat(sprintf("Warning: modules cols (%d) < expected nodes (%d)\n", n_mod_cols, n_inc_nodes))
+    return(list(Q = Q, modules = NULL, n_modules = 0))
   }
 
-  # Could not align automatically
-  return(list(Q = Q, modules = NULL, n_modules = 0))
+  # Compute per-node (column-wise) module assignment.
+  # Exclude baseline row (row 1) which behaves like a non-module meta row.
+  assign_vec <- apply(mods_mat[-1, usable_cols, drop = FALSE], 2, which.max) + 1L
+  if (length(assign_vec) != n_inc_nodes) {
+    cat(sprintf("Warning: assignment length mismatch (%d vs %d)\n", length(assign_vec), n_inc_nodes))
+    return(list(Q = Q, modules = NULL, n_modules = 0))
+  }
+
+  # Names in the optimizer's internal order
+  fg_names_ordered <- if (!is.null(orderA)) inc_row_names[orderA] else inc_row_names
+  py_names_ordered <- if (!is.null(orderB)) inc_col_names[orderB] else inc_col_names
+
+  # Split assignments into FG and PYOV segments (optimizer uses FG block then PYOV block)
+  fg_assign_ordered <- assign_vec[1:nA]
+  py_assign_ordered <- assign_vec[(nA + 1):(nA + nB)]
+
+  # Align back to original incidence order
+  fg_idx <- match(inc_row_names, fg_names_ordered)
+  py_idx <- match(inc_col_names, py_names_ordered)
+
+  if (any(is.na(fg_idx)) || any(is.na(py_idx))) {
+    cat("Warning: alignment failed: NA indices present when matching orderA/orderB to incidence names\n")
+    return(list(Q = Q, modules = NULL, n_modules = 0))
+  }
+
+  final_fg_assign <- fg_assign_ordered[fg_idx]
+  final_py_assign <- py_assign_ordered[py_idx]
+
+  modules_df <- data.frame(
+    node_id = c(inc_row_names, inc_col_names),
+    node_type = c(rep("FG", length(inc_row_names)), rep("PYOV", length(inc_col_names))),
+    module_id = c(as.integer(final_fg_assign), as.integer(final_py_assign)),
+    layer = layer_name,
+    stringsAsFactors = FALSE
+  )
+
+  n_modules <- length(unique(modules_df$module_id))
+
+  return(list(Q = Q, modules = modules_df, n_modules = n_modules))
 }
+
 
 # Compute pairwise ARI between partitions
 compute_pairwise_ari <- function(partition_list) {

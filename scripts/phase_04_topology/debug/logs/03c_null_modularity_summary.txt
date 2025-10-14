@@ -1,5 +1,5 @@
 Phase 04 - Step 03c: Layer-Specific Null Model Modularity Test Summary
-Timestamp: 2025-10-13 10:25:45 CST
+Timestamp: 2025-10-14 09:14:08 CST
 Master seed: 2025
 Nulls per layer: 100
 
