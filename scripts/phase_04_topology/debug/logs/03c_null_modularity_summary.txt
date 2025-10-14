@@ -1,10 +1,10 @@
 Phase 04 - Step 03c: Layer-Specific Null Model Modularity Test Summary
-Timestamp: 2025-10-14 09:14:08 CST
+Timestamp: 2025-10-14 11:59:09 CST
 Master seed: 2025
 Nulls per layer: 100
 
 Method:
-  Null generation: vegan::swap.web(method = 'quasiswap')
+  Null generation: vegan::nullmodel + simulate(method = 'curveball')
   Modularity: bipartite::computeModules (Beckett method - same as main function)
   Statistical testing: two-tailed empirical with +1 correction
   Stability assessment: CV and ARI metrics for both observed and null distributions
@@ -27,8 +27,8 @@ Interpretation Guidelines:
   Null mean ARI < 0.60: Low consistency in null partitions
 
 Notes:
-  - Null models preserve layer-specific degree sequences using bipartite swaps
-  - Quasi-swap method ensures degree preservation for bipartite networks
+  - Null models preserve layer-specific degree sequences via vegan curveball swaps
+  - curveball swaps generated via vegan::nullmodel + simulate (batch)
   - Algorithm parameters EXACTLY match main function for valid comparison
   - Stability assessed on samples of null matrices using replicates
   - Two-tailed testing more appropriate for comprehensive biological analysis

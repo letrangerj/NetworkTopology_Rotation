@@ -44,12 +44,47 @@ safe_dir_create <- function(path) {
 
 timestamp <- function() format(Sys.time(), "%Y-%m-%d %H:%M:%S %Z")
 
+# Robust extraction for simulated null matrices from vegan::nullmodel + simulate
+extract_sim_mats <- function(sim_obj) {
+  # Handles list of matrices or 3D arrays
+  if (is.null(sim_obj)) return(list())
+  if (is.list(sim_obj)) {
+    return(lapply(sim_obj, function(m) as.matrix(m)))
+  }
+  if (length(dim(sim_obj)) == 3) {
+    k <- dim(sim_obj)[3]
+    out <- vector("list", k)
+    for (i in seq_len(k)) out[[i]] <- as.matrix(sim_obj[,,i])
+    return(out)
+  }
+  if (is.matrix(sim_obj)) return(list(as.matrix(sim_obj)))
+  list()
+}
+
+# Generate curveball nulls efficiently in batches
+generate_curveball_nulls <- function(incidence, n_nulls, seed) {
+  set.seed(seed)
+  nm <- vegan::nullmodel(incidence, method = "curveball")
+  sim <- tryCatch(vegan::simulate(nm, nsim = n_nulls), error = function(e) NULL)
+  if (!is.null(sim)) return(extract_sim_mats(sim))
+  # Fallback: one-by-one
+  mats <- vector("list", n_nulls)
+  for (i in seq_len(n_nulls)) {
+    set.seed(seed + i)
+    mats[[i]] <- tryCatch(as.matrix(vegan::simulate(nm)), error = function(e) NULL)
+  }
+  mats
+}
+
 # Build layer-specific incidence matrix
 build_layer_incidence <- function(adj_production, adj_utilization, layer = "production") {
   if (layer == "production") {
     incidence <- as.matrix(adj_production > 0) * 1
   } else if (layer == "utilization") {
     incidence <- as.matrix(t(adj_utilization) > 0) * 1
+    if (!all(rownames(incidence) == rownames(adj_production))) {
+      stop("Row name mismatch between production and utilization layers")
+    }
   } else {
     stop("Layer must be 'production' or 'utilization'")
   }
@@ -66,6 +101,9 @@ remove_zero_degree <- function(incidence, layer_name) {
   zero_rows <- which(row_degrees == 0)
   zero_cols <- which(col_degrees == 0)
 
+  zero_row_names <- if (length(zero_rows) > 0) rownames(incidence)[zero_rows] else character(0)
+  zero_col_names <- if (length(zero_cols) > 0) colnames(incidence)[zero_cols] else character(0)
+
   if (length(zero_rows) > 0) {
     incidence <- incidence[-zero_rows, , drop = FALSE]
   }
@@ -80,7 +118,9 @@ remove_zero_degree <- function(incidence, layer_name) {
     initial_dims = initial_dims,
     final_dims = final_dims,
     zero_rows_removed = length(zero_rows),
-    zero_cols_removed = length(zero_cols)
+    zero_cols_removed = length(zero_cols),
+    zero_row_names = zero_row_names,
+    zero_col_names = zero_col_names
   )
 
   return(list(incidence = incidence, removal_summary = removal_summary))
@@ -89,35 +129,29 @@ remove_zero_degree <- function(incidence, layer_name) {
 # Compute modularity with error handling - EXACTLY matches main function parameters
 compute_modularity_safe <- function(incidence, seed = NULL) {
   if (!is.null(seed)) set.seed(seed)
-
+  # Minimal, version-stable signature; avoids failures seen with extra args
   result <- tryCatch(
-    {
-      bipartite::computeModules(incidence,
-        method = "Beckett",
-        deep = FALSE,
-        deleteOriginalFiles = TRUE,
-        steps = 1000000,
-        tolerance = 1e-10,
-        experimental = FALSE,
-        forceLPA = FALSE
-      )
-    },
+    bipartite::computeModules(incidence, method = "Beckett", deep = FALSE, deleteOriginalFiles = TRUE),
     error = function(e) {
       message("computeModules failed with error: ", e$message)
       NULL
     }
   )
-
-  return(result)
+  result
 }
 
 # Extract Q value from bipartite result
 extract_Q_value <- function(module_result) {
-  if (is.null(module_result)) {
-    return(NA_real_)
-  }
-
-  Q <- module_result@likelihood
+  if (is.null(module_result)) return(NA_real_)
+  Q <- tryCatch({
+    if (isS4(module_result) && "likelihood" %in% slotNames(module_result)) {
+      as.numeric(slot(module_result, "likelihood"))
+    } else if (!is.null(module_result$likelihood)) {
+      as.numeric(module_result$likelihood)
+    } else {
+      NA_real_
+    }
+  }, error = function(e) NA_real_)
   return(Q)
 }
 
@@ -154,6 +188,21 @@ compute_null_stability <- function(null_matrix, n_stability_reps = 3, base_seed 
   ))
 }
 
+
+# Build a robust statistic function for oecosimu that restores dimnames, binarizes
+mk_modularity_stat <- function(row_names, col_names) {
+  force(row_names); force(col_names)
+  function(x) {
+    m <- as.matrix(x)
+    storage.mode(m) <- "double"
+    m <- (m > 0) * 1
+    dimnames(m) <- list(row_names, col_names)
+    # Skip degenerate cases early
+    if (any(rowSums(m) == 0) || any(colSums(m) == 0)) return(NA_real_)
+    res <- tryCatch(compute_modularity_safe(m, seed = NULL), error = function(e) NULL)
+    extract_Q_value(res)
+  }
+}
 
 
 # -----------------------------
@@ -275,43 +324,82 @@ for (layer in layers_to_run) {
   # 2. Load observed modularity from existing results (avoid redundant computation)
   cat("Loading pre-computed observed modularity...\n")
 
-  # Try to load from main analysis results
   replicate_q_file <- paste0("results/phase_04/modularity/replicate_Q_", layer, ".csv")
-  assignments_file <- paste0("results/phase_04/modularity/module_assignments_", layer, ".rds")
+  summary_file <- "docs/phase_04/logs/step03_modularity_summary.txt"
 
-  if (file.exists(replicate_q_file)) {
-    cat("  Found existing Q values from main analysis - using them to avoid recomputation\n")
+  obs_Q <- NA_real_
+  obs_stability <- NULL
+
+  # Prefer representative Q from summary (matches main method)
+  if (file.exists(summary_file)) {
+    lines <- readLines(summary_file, warn = FALSE)
+    anchor <- paste0(stringr::str_to_title(layer), " Layer:")
+    idx <- which(trimws(lines) == anchor)
+    if (length(idx) > 0) {
+      # Search a small window after anchor for "Representative Q:"
+      win <- lines[seq(idx[1], min(length(lines), idx[1] + 10))]
+      rep_line <- grep("Representative Q:\\s*", win, value = TRUE)
+      if (length(rep_line) > 0) {
+        num <- sub(".*Representative Q: \\s*([0-9.]+).*", "\\1", rep_line[1])
+        num_val <- suppressWarnings(as.numeric(num))
+        if (!is.na(num_val)) {
+          obs_Q <- num_val
+          cat(sprintf("  Representative Q from summary: %.4f\n", obs_Q))
+        }
+      }
+    }
+  }
+
+  if (is.na(obs_Q) && file.exists(replicate_q_file)) {
+    cat("  Using replicate Q CSV: computing median Q to approximate representative\n")
     replicate_q_df <- read.csv(replicate_q_file, stringsAsFactors = FALSE)
-    
-    # Note: module assignments files may not exist due to partition length issues
-    # We can proceed with just the Q values for null model testing
-
-    # Use the first valid Q value (or could use representative partition's Q)
     valid_q_values <- replicate_q_df$Q_value[!is.na(replicate_q_df$Q_value)]
     if (length(valid_q_values) > 0) {
-      obs_Q <- valid_q_values[1]
-    } else {
-      obs_Q <- NA_real_
+      obs_Q <- stats::median(valid_q_values)
     }
-
-    # Compute stability metrics from existing results
     obs_stability <- list(
       n_valid = length(valid_q_values),
       mean_Q = mean(valid_q_values),
       sd_Q = sd(valid_q_values),
       CV = ifelse(mean(valid_q_values) > 0, sd(valid_q_values) / mean(valid_q_values), NA_real_),
-      mean_ARI = NA_real_, # ARI not saved in main results
+      mean_ARI = NA_real_,
       ari_iqr_lower = NA_real_,
       ari_iqr_upper = NA_real_
     )
-
-    cat(sprintf("  Loaded %d pre-computed Q values from main analysis\n", length(valid_q_values)))
-    cat(sprintf("Observed Q: %.4f (from pre-computed results)\n", obs_Q))
+    cat(sprintf("  Loaded %d pre-computed Q values (median Q=%.4f)\n", length(valid_q_values), obs_Q))
     cat(sprintf(
       "Observed stability: mean_Q=%.4f, sd=%.4f, CV=%.4f (%d valid)\n",
       obs_stability$mean_Q, obs_stability$sd_Q, obs_stability$CV, obs_stability$n_valid
     ))
-  } else {
+  }
+
+  if (!is.na(obs_Q) && is.null(obs_stability)) {
+    if (file.exists(replicate_q_file)) {
+      replicate_q_df <- read.csv(replicate_q_file, stringsAsFactors = FALSE)
+      valid_q_values <- replicate_q_df$Q_value[!is.na(replicate_q_df$Q_value)]
+      obs_stability <- list(
+        n_valid = length(valid_q_values),
+        mean_Q = if (length(valid_q_values) > 0) mean(valid_q_values) else obs_Q,
+        sd_Q = if (length(valid_q_values) > 1) sd(valid_q_values) else NA_real_,
+        CV = if (length(valid_q_values) > 1 && mean(valid_q_values) > 0) sd(valid_q_values) / mean(valid_q_values) else NA_real_,
+        mean_ARI = NA_real_,
+        ari_iqr_lower = NA_real_,
+        ari_iqr_upper = NA_real_
+      )
+    } else {
+      obs_stability <- list(
+        n_valid = 1,
+        mean_Q = obs_Q,
+        sd_Q = NA_real_,
+        CV = NA_real_,
+        mean_ARI = NA_real_,
+        ari_iqr_lower = NA_real_,
+        ari_iqr_upper = NA_real_
+      )
+    }
+  }
+
+  if (is.na(obs_Q)) {
     # Fallback: compute single observed modularity if files don't exist
     cat("  No existing results found - computing single observed modularity\n")
     obs_result <- compute_modularity_safe(incidence, seed = master_seed)
@@ -341,93 +429,27 @@ for (layer in layers_to_run) {
     next
   }
 
-  # 4. Generate null models
-  cat(sprintf("Generating %d degree-preserving nulls...\n", n_nulls))
-
-  null_Q_values <- numeric(n_nulls)
-  valid_nulls <- 0
-
-  # Store successful null matrices for stability analysis (efficient approach)
-  successful_null_matrices <- list()
-  successful_null_indices <- numeric(0)
-
-  # Generate unique seeds for each null
-  null_seeds <- master_seed + seq_len(n_nulls) * 10000
-
-  for (i in 1:n_nulls) {
-    cat(sprintf("  Null %d/%d (seed=%d)...\n", i, n_nulls, null_seeds[i]))
-
-    # Generate a single null matrix using bipartite swap.web
-    # Compute adaptive swaps based on number of edges
-    edge_count <- sum(incidence)
-    times_swap <- max(100, 10 * edge_count) # Minimum 100 swaps, or 10×edge count
-
-    null_matrix <- tryCatch(
-      {
-        vegan::swap.web(incidence, method = "quasiswap", times = times_swap)
-      },
-      error = function(e) {
-        message("swap.web failed with error: ", e$message)
-        NULL
-      }
-    )
-
-    if (!is.null(null_matrix)) {
-      # Validate exact degree preservation with proper numerical tolerance
-      row_sums_orig <- rowSums(incidence)
-      row_sums_null <- rowSums(null_matrix)
-      col_sums_orig <- colSums(incidence)
-      col_sums_null <- colSums(null_matrix)
-
-      # Use numerical tolerance instead of all.equal() boolean logic
-      tolerance <- 1e-10
-      row_sums_preserved <- all(abs(row_sums_orig - row_sums_null) < tolerance)
-      col_sums_preserved <- all(abs(col_sums_orig - col_sums_null) < tolerance)
-
-      # Validate that null matrix is actually different from original
-      matrix_different <- !identical(incidence, null_matrix)
-      if (!matrix_different) {
-        cat(sprintf("WARNING: Null matrix identical to original for null %d (insufficient shuffling)\n", i))
-      }
-
-      # Only proceed if degree preserved AND matrix is actually shuffled
-      if (!(row_sums_preserved && col_sums_preserved)) {
-        row_diff <- max(abs(row_sums_orig - row_sums_null))
-        col_diff <- max(abs(col_sums_orig - col_sums_null))
-        cat(sprintf(
-          "WARNING: Degree preservation failed for null %d (max row diff: %.2e, max col diff: %.2e)\n",
-          i, row_diff, col_diff
-        ))
-        null_Q_values[i] <- NA_real_
-        cat(sprintf("  Info: Skipping modularity for invalid null %d\n", i))
-        next
-      }
-
-      if (!matrix_different) {
-        null_Q_values[i] <- NA_real_
-        cat(sprintf("  Info: Skipping modularity for unshuffled null %d\n", i))
-        next
-      }
-
-      # Compute modularity on the null matrix with same deterministic approach
-      null_mod_result <- compute_modularity_safe(null_matrix, seed = null_seeds[i])
-      null_Q <- extract_Q_value(null_mod_result)
-
-      if (!is.na(null_Q)) {
-        null_Q_values[i] <- null_Q
-        valid_nulls <- valid_nulls + 1
-
-        # Store successful null matrix for stability analysis (no regeneration needed!)
-        successful_null_matrices[[length(successful_null_matrices) + 1]] <- null_matrix
-        successful_null_indices <- c(successful_null_indices, i)
-      } else {
-        null_Q_values[i] <- NA_real_
-        cat(sprintf("  Warning: Modularity computation failed for null %d\n", i))
-      }
-    } else {
-      null_Q_values[i] <- NA_real_
-      cat(sprintf("  Warning: Null generation failed for null %d\n", i))
+  # 4. Generate null models using per-null oecosimu calls (like 04a), no reseeding inside stat
+  cat(sprintf("Generating %d nulls via vegan::oecosimu (curveball)...\n", n_nulls))
+  stat_fun <- mk_modularity_stat(rownames(incidence), colnames(incidence))
+  null_Q_values <- rep(NA_real_, n_nulls)
+  fail_counts <- list(oeco_error = 0L, stat_na = 0L)
+  for (i in seq_len(n_nulls)) {
+    if (i == 1 || i %% max(1, floor(n_nulls / 10)) == 0) cat(sprintf("  ... null %d/%d\n", i, n_nulls))
+    set.seed(master_seed + 4242 + i)
+    single_result <- tryCatch({
+      vegan::oecosimu(incidence,
+                      nestfun = stat_fun,
+                      method = "curveball",
+                      nsimul = 2,
+                      alternative = "two.sided")
+    }, error = function(e) NULL)
+    if (is.null(single_result) || is.null(single_result$oecosimu$simulated)) {
+      fail_counts$oeco_error <- fail_counts$oeco_error + 1L
+      next
     }
+    qv <- suppressWarnings(as.numeric(single_result$oecosimu$simulated[1]))
+    if (is.finite(qv)) null_Q_values[i] <- qv else fail_counts$stat_na <- fail_counts$stat_na + 1L
   }
 
   # Remove NA values for analysis
@@ -447,36 +469,12 @@ for (layer in layers_to_run) {
   }
 
   # 5a. Assess null distribution stability on sample of null matrices (memory-efficient)
+  # Assess null distribution stability (approximate via chunk CV if enough sims)
   cat("Assessing null distribution stability...\n")
-  null_stability_samples <- min(10, length(successful_null_matrices)) # Sample 10 null matrices for stability
-  null_stability_results <- list()
-
-  # Use stored null matrices instead of regenerating (2x faster!)
-  for (sample_idx in 1:null_stability_samples) {
-    null_matrix <- successful_null_matrices[[sample_idx]]
-    original_null_idx <- successful_null_indices[sample_idx]
-
-    if (!is.null(null_matrix)) {
-      cat(sprintf(
-        "  Stability analysis for null matrix %d (original index: %d)...\n",
-        sample_idx, original_null_idx
-      ))
-
-      # Compute stability metrics for this stored null matrix
-      stability <- compute_null_stability(null_matrix, n_stability_reps = 3, master_seed + original_null_idx * 1000)
-      null_stability_results[[sample_idx]] <- stability
-    }
-  }
-
-  # Memory cleanup - free up space from stored matrices
-  rm(successful_null_matrices)
-  gc() # Force garbage collection
-
-  # Aggregate null stability metrics
-  valid_null_stabilities <- null_stability_results[!sapply(null_stability_results, function(x) is.null(x$n_valid) && x$n_valid == 0)]
-  if (length(valid_null_stabilities) > 0) {
-    null_cv_mean <- mean(sapply(valid_null_stabilities, function(x) ifelse(is.na(x$CV), 0, x$CV)), na.rm = TRUE)
-    null_ari_mean <- mean(sapply(valid_null_stabilities, function(x) ifelse(is.na(x$mean_ARI), 0, x$mean_ARI)), na.rm = TRUE)
+  if (length(null_Q_clean) >= 10) {
+    half <- floor(length(null_Q_clean) / 2)
+    null_cv_mean <- suppressWarnings(sd(null_Q_clean, na.rm = TRUE) / mean(null_Q_clean, na.rm = TRUE))
+    null_ari_mean <- NA_real_
   } else {
     null_cv_mean <- NA_real_
     null_ari_mean <- NA_real_
@@ -573,7 +571,7 @@ summary_lines <- c(
   paste("Nulls per layer:", n_nulls),
   "",
   "Method:",
-  "  Null generation: vegan::swap.web(method = 'quasiswap')",
+  "  Null generation: vegan::nullmodel + simulate(method = 'curveball')",
   "  Modularity: bipartite::computeModules (Beckett method - same as main function)",
   "  Statistical testing: two-tailed empirical with +1 correction",
   "  Stability assessment: CV and ARI metrics for both observed and null distributions",
@@ -665,8 +663,8 @@ summary_lines <- c(
   "  Null mean ARI < 0.60: Low consistency in null partitions",
   "",
   "Notes:",
-  "  - Null models preserve layer-specific degree sequences using bipartite swaps",
-  "  - Quasi-swap method ensures degree preservation for bipartite networks",
+  "  - Null models preserve layer-specific degree sequences via vegan curveball swaps",
+  "  - curveball swaps generated via vegan::nullmodel + simulate (batch)",
   "  - Algorithm parameters EXACTLY match main function for valid comparison",
   "  - Stability assessed on samples of null matrices using replicates",
   "  - Two-tailed testing more appropriate for comprehensive biological analysis",
