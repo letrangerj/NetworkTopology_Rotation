@@ -1,0 +1,20 @@
+Phase 04 Step 03a summary (scikit-network)
+Timestamp: 2025-10-16 02:08:12 
+
+Production
+  Best Q: 0.9242
+  Replicate Q mean±sd: 0.9242 ± 1.1158161231197418e-16
+  Null mean±sd: nan ± nan
+  z-score: nan | p(one-tailed): nan
+  Modules saved: results/phase_04/modularity/module_assignments_production_sk.csv
+  Replicate Q file: results/phase_04/modularity/replicate_Q_production_sk.csv
+  Null summary file: results/phase_04/modularity/null_summary_production_sk.csv
+
+Utilization
+  Best Q: 0.4359
+  Replicate Q mean±sd: 0.4359 ± 5.579080615598709e-17
+  Null mean±sd: nan ± nan
+  z-score: nan | p(one-tailed): nan
+  Modules saved: results/phase_04/modularity/module_assignments_utilization_sk.csv
+  Replicate Q file: results/phase_04/modularity/replicate_Q_utilization_sk.csv
+  Null summary file: results/phase_04/modularity/null_summary_utilization_sk.csv
