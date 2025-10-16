@@ -1,20 +1,22 @@
 Phase 04 Step 03a summary (scikit-network)
-Timestamp: 2025-10-16 02:08:12 
+Timestamp: 2025-10-16 16:09:34 
 
 Production
-  Best Q: 0.9242
-  Replicate Q mean±sd: 0.9242 ± 1.1158161231197418e-16
-  Null mean±sd: nan ± nan
-  z-score: nan | p(one-tailed): nan
+  Best Q: 0.8722
+  Replicate Q mean±sd: 0.8248 ± 0.02423252216214623
+  Null mean±sd: 0.8092537142857142 ± 0.017134385537043273
+  z-score: 3.6753496065972278 | p(one-tailed): 0.0
   Modules saved: results/phase_04/modularity/module_assignments_production_sk.csv
   Replicate Q file: results/phase_04/modularity/replicate_Q_production_sk.csv
+  Null replicates file: results/phase_04/modularity/null_replicates_production_sk.csv
   Null summary file: results/phase_04/modularity/null_summary_production_sk.csv
 
 Utilization
-  Best Q: 0.4359
-  Replicate Q mean±sd: 0.4359 ± 5.579080615598709e-17
-  Null mean±sd: nan ± nan
-  z-score: nan | p(one-tailed): nan
+  Best Q: 0.4361
+  Replicate Q mean±sd: 0.3027 ± 0.06645983089724017
+  Null mean±sd: -0.0001880389183180141 ± 0.005291067996776272
+  z-score: 82.46558826548812 | p(one-tailed): 0.0
   Modules saved: results/phase_04/modularity/module_assignments_utilization_sk.csv
   Replicate Q file: results/phase_04/modularity/replicate_Q_utilization_sk.csv
+  Null replicates file: results/phase_04/modularity/null_replicates_utilization_sk.csv
   Null summary file: results/phase_04/modularity/null_summary_utilization_sk.csv

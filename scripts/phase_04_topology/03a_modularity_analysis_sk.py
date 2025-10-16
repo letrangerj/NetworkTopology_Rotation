@@ -3,11 +3,89 @@
 import os
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
-
+from tqdm import tqdm
 import pandas as pd
 import numpy as np
 from scipy.sparse import csr_matrix
-from sknetwork.clustering import Louvain
+from numpy.random import Generator, default_rng
+
+
+def _curveball_biadjacency(biadj: csr_matrix, n_rounds: int, rng: Generator) -> csr_matrix:
+    if n_rounds <= 0:
+        return biadj.copy()
+    biadj = biadj.tocsr(copy=True)
+    n_rows, n_cols = biadj.shape
+    if n_rows == 0 or n_cols == 0:
+        return biadj
+    neighbour_sets: List[set[int]] = []
+    active_rows: List[int] = []
+    indptr = biadj.indptr
+    indices = biadj.indices
+    for i in range(n_rows):
+        start, end = indptr[i], indptr[i + 1]
+        row_set = set(indices[start:end])
+        neighbour_sets.append(row_set)
+        if row_set:
+            active_rows.append(i)
+    if len(active_rows) < 2:
+        return biadj
+    active_rows_array = np.array(active_rows, dtype=int)
+    for _ in range(n_rounds):
+        if active_rows_array.size < 2:
+            break
+        i_idx, j_idx = rng.choice(active_rows_array, size=2, replace=False)
+        neighbours_i = neighbour_sets[i_idx]
+        neighbours_j = neighbour_sets[j_idx]
+        if not neighbours_i or not neighbours_j:
+            continue
+        common = neighbours_i & neighbours_j
+        diff_i = list(neighbours_i - common)
+        diff_j = list(neighbours_j - common)
+        swap_pool = diff_i + diff_j
+        if not swap_pool:
+            continue
+        rng.shuffle(swap_pool)
+        cut = len(diff_i)
+        new_i = common | set(swap_pool[:cut])
+        new_j = common | set(swap_pool[cut:])
+        neighbour_sets[i_idx] = new_i
+        neighbour_sets[j_idx] = new_j
+    row_indices: List[int] = []
+    col_indices: List[int] = []
+    for row, cols in enumerate(neighbour_sets):
+        for col in cols:
+            row_indices.append(row)
+            col_indices.append(col)
+    data = np.ones(len(col_indices), dtype=np.float64)
+    randomized = csr_matrix((data, (row_indices, col_indices)), shape=(n_rows, n_cols))
+    return randomized
+
+
+def _compute_null_summary(q_obs: float, q_null: np.ndarray) -> Dict[str, float]:
+    if q_null.size == 0:
+        return {
+            'Q_obs': q_obs,
+            'Q_null_mean': float('nan'),
+            'Q_null_sd': float('nan'),
+            'z_score': float('nan'),
+            'p_value': float('nan'),
+            'n_valid_nulls': 0
+        }
+    mean_q = float(np.mean(q_null)) if q_null.size else float('nan')
+    sd_q = float(np.std(q_null, ddof=1)) if q_null.size > 1 else float('nan')
+    if np.isfinite(sd_q) and sd_q > 0.0:
+        z_score = float((q_obs - mean_q) / sd_q)
+    else:
+        z_score = float('nan')
+    p_value = float(np.mean(q_null >= q_obs)) if q_null.size else float('nan')
+    return {
+        'Q_obs': q_obs,
+        'Q_null_mean': mean_q,
+        'Q_null_sd': sd_q,
+        'z_score': z_score,
+        'p_value': p_value,
+        'n_valid_nulls': int(q_null.size)
+    }
 
 
 def _barber_modularity(biadj: csr_matrix, labels_row: np.ndarray, labels_col: np.ndarray) -> float:
@@ -61,47 +139,67 @@ def build_biadjacency(edges: pd.DataFrame, src_col: str, tgt_col: str) -> Tuple[
     return biadj, rows, cols
 
 
-def run_bipartite_louvain(biadj: csr_matrix, random_state: Optional[int] = None) -> Tuple[np.ndarray, float, dict]:
-    algo = Louvain(random_state=random_state)
-    labels = algo.fit_predict(biadj)
-    if hasattr(algo, 'labels_row_') and hasattr(algo, 'labels_col_'):
-        lab_row = np.array(algo.labels_row_, dtype=int)
-        lab_col = np.array(algo.labels_col_, dtype=int)
+def simple_brim(biadj: csr_matrix, n_iter: int = 100, random_state: Optional[int] = None) -> Tuple[np.ndarray, np.ndarray, float]:
+    rng = default_rng(random_state)
+    n_rows, n_cols = biadj.shape
+    if n_rows == 0 or n_cols == 0:
+        return np.zeros(n_rows, dtype=int), np.zeros(n_cols, dtype=int), 0.0
+
+    min_side = max(1, min(n_rows, n_cols))
+    if min_side < 3:
+        n_init_modules = min_side
     else:
-        n_rows = biadj.shape[0]
-        n_cols = biadj.shape[1]
-        if len(labels) != n_rows + n_cols:
-            raise ValueError("Unexpected label length from Louvain output for bipartite graph")
-        lab_row = np.array(labels[:n_rows], dtype=int)
-        lab_col = np.array(labels[n_rows:], dtype=int)
-    quality = getattr(algo, 'modularity_', None)
-    if quality is None:
-        quality = getattr(algo, 'score_', None)
-    if quality is None and hasattr(algo, 'score'):
-        try:
-            quality = algo.score(biadj, labels)
-        except TypeError:
-            quality = algo.score(biadj)
-    if quality is None:
-        try:
-            from sknetwork.utils.metrics import modularity as modularity_fn
-        except ImportError:
-            try:
-                from sknetwork.utils import modularity as modularity_fn  # type: ignore
-            except ImportError:
-                modularity_fn = None
-        if modularity_fn is not None:
-            try:
-                quality = modularity_fn(biadj, labels)
-            except TypeError:
-                quality = modularity_fn(biadj, lab_row, lab_col)
-    if quality is None:
-        quality = _barber_modularity(biadj, lab_row, lab_col)
-    quality = float(quality)
-    meta = {}
-    meta['labels_row_'] = lab_row
-    meta['labels_col_'] = lab_col
-    return np.array(labels, dtype=int), quality, meta
+        n_init_modules = min(15, max(2, min_side // 3))
+    n_init_modules = max(1, min(n_init_modules, min_side))
+
+    labels_row = rng.integers(0, n_init_modules, n_rows)
+    labels_col = rng.integers(0, n_init_modules, n_cols)
+
+    biadj = biadj.tocsr()
+    biadj_t = biadj.transpose().tocsr()
+    for _ in range(max(1, n_iter)):
+        for i in range(n_rows):
+            start, end = biadj.indptr[i], biadj.indptr[i + 1]
+            neighbours = biadj.indices[start:end]
+            if neighbours.size == 0:
+                continue
+            label_counts = np.bincount(labels_col[neighbours])
+            labels_row[i] = int(np.argmax(label_counts))
+        for j in range(n_cols):
+            start, end = biadj_t.indptr[j], biadj_t.indptr[j + 1]
+            neighbours = biadj_t.indices[start:end]
+            if neighbours.size == 0:
+                continue
+            label_counts = np.bincount(labels_row[neighbours])
+            labels_col[j] = int(np.argmax(label_counts))
+
+    all_labels = np.concatenate([labels_row, labels_col])
+    unique = np.unique(all_labels)
+    
+    # Prevent convergence to single module for null model comparison
+    # If all nodes end up in one module, distribute them across at least min_modules
+    min_modules = max(2, min(10, max(n_rows, n_cols) // 5))
+    
+    if len(unique) == 1:
+        # Force diverse assignment if converged to single module
+        n_nodes = len(all_labels)
+        labels_row = np.arange(n_rows) % min_modules
+        labels_col = np.arange(n_cols) % min_modules
+        unique = np.arange(min_modules)
+    
+    mapping = {old: new for new, old in enumerate(unique)}
+    labels_row = np.array([mapping[x] for x in labels_row], dtype=int)
+    labels_col = np.array([mapping[x] for x in labels_col], dtype=int)
+
+    quality = _barber_modularity(biadj, labels_row, labels_col)
+    return labels_row, labels_col, quality
+
+
+def run_brim(biadj: csr_matrix, random_state: Optional[int] = None, n_iter: int = 100) -> Tuple[np.ndarray, float, dict]:
+    labels_row, labels_col, quality = simple_brim(biadj, n_iter=n_iter, random_state=random_state)
+    labels = np.concatenate([labels_row, labels_col])
+    meta = {'labels_row_': labels_row, 'labels_col_': labels_col}
+    return labels, float(quality), meta
 
 
 def save_membership(path: str, row_nodes: List[str], col_nodes: List[str], labels: np.ndarray, meta: dict, layer: str) -> pd.DataFrame:
@@ -123,19 +221,39 @@ def save_membership(path: str, row_nodes: List[str], col_nodes: List[str], label
 
 
 def analyze_layer(layer_name: str, edges: pd.DataFrame, src_col: str, tgt_col: str, outdir: str,
-                  random_state: Optional[int] = None, n_replicates: int = 1) -> Dict:
+                  random_state: Optional[int] = None, n_replicates: int = 1,
+                  n_null_replicates: int = 0, null_curveball_rounds: int = 0,
+                  brim_iterations: int = 100) -> Dict:
     print(f"[{ts()}] Layer: {layer_name}")
     biadj, rows, cols = build_biadjacency(edges, src_col, tgt_col)
+
+    #debug
+    print(f"\n{'='*60}")
+    print(f"Layer: {layer_name}")
+    print(f"FG nodes (rows): {len(rows)}")
+    print(f"PYO nodes (cols): {len(cols)}")
+    print(f"Sample rows: {rows[:5]}")
+    print(f"Sample cols: {cols[:5]}")
+    print(f"{'='*60}\n")
+
     n_edges = int(biadj.nnz)
     density = n_edges / (biadj.shape[0] * biadj.shape[1]) if biadj.shape[0] * biadj.shape[1] > 0 else 0.0
     print(f"dims: {biadj.shape[0]} x {biadj.shape[1]} | edges: {n_edges} | density: {density:.4f}")
 
     replicates: List[Dict[str, float]] = []
     best = None
-    for rep in range(n_replicates):
-        rs = None if random_state is None else random_state + rep
-        labels, quality, meta = run_bipartite_louvain(biadj, random_state=rs)
-        replicates.append({'replicate': rep + 1, 'Q': quality, 'random_state': rs})
+    # Use a single master RNG for this layer to ensure independent streams
+    master_rng = default_rng(random_state)
+    for rep in tqdm(range(n_replicates), desc=f'{layer_name} replicate'):
+        # Each replicate gets an independent seed from master RNG
+        rs = None if random_state is None else int(master_rng.integers(0, 2**31))
+        labels, quality, meta = run_brim(biadj, random_state=rs, n_iter=brim_iterations)
+        replicates.append({
+            'replicate': rep + 1,
+            'Q': quality,
+            'random_state': rs,
+            'brim_iterations': brim_iterations
+        })
         if best is None or quality > best['quality']:
             best = {'labels': labels, 'quality': quality, 'meta': meta}
     assert best is not None
@@ -152,8 +270,50 @@ def analyze_layer(layer_name: str, edges: pd.DataFrame, src_col: str, tgt_col: s
     rep_df['layer'] = layer_name
     rep_df.to_csv(rep_file, index=False)
 
-    null_file = os.path.join(outdir, f"null_summary_{layer_name}_sk.csv")
-    pd.DataFrame([{'Q_obs': best_quality, 'Q_null_mean': np.nan, 'Q_null_sd': np.nan, 'z_score': np.nan, 'p_value': np.nan, 'n_valid_nulls': 0}]).to_csv(null_file, index=False)
+    null_rows: List[Dict[str, Optional[float]]] = []
+    null_replicates_file = os.path.join(outdir, f"null_replicates_{layer_name}_sk.csv")
+    null_summary_file = os.path.join(outdir, f"null_summary_{layer_name}_sk.csv")
+    if n_null_replicates > 0 and null_curveball_rounds > 0:
+        # Create dedicated RNG for null models to ensure independence from replicates
+        null_master_rng = default_rng(random_state + 1000000 if random_state else None)
+        for null_idx in tqdm(range(n_null_replicates),  desc=f'{layer_name} nulls'):
+            # Generate independent seeds for each null component
+            shuffle_seed = None if random_state is None else int(null_master_rng.integers(0, 2**31))
+            brim_null_seed = None if random_state is None else int(null_master_rng.integers(0, 2**31))
+            
+            rng = default_rng(shuffle_seed)
+            randomized = _curveball_biadjacency(biadj, null_curveball_rounds, rng)
+            try:
+                _, q_null, _ = run_brim(randomized, random_state=brim_null_seed, n_iter=brim_iterations)
+                null_rows.append({
+                    'replicate': null_idx + 1,
+                    'Q': q_null,
+                    'random_state': brim_null_seed,
+                    'shuffle_seed': shuffle_seed,
+                    'brim_iterations': brim_iterations,
+                    'curveball_rounds': null_curveball_rounds
+                })
+            except Exception as exc:  # pragma: no cover - logging for debugging
+                print(f"[{ts()}] {layer_name} | Null replicate {null_idx + 1} failed: {exc}")
+        if null_rows:
+            null_df = pd.DataFrame(null_rows)
+            null_df['layer'] = layer_name
+            null_df.to_csv(null_replicates_file, index=False)
+            valid_null = null_df['Q'].dropna().to_numpy(dtype=float)
+            null_summary = _compute_null_summary(best_quality, valid_null)
+        else:
+            null_df = pd.DataFrame(columns=['replicate', 'Q', 'random_state', 'shuffle_seed', 'layer'])
+            null_df.to_csv(null_replicates_file, index=False)
+            null_summary = _compute_null_summary(best_quality, np.array([], dtype=float))
+    else:
+        null_summary = _compute_null_summary(best_quality, np.array([], dtype=float))
+        null_rows = []
+        pd.DataFrame(columns=['replicate', 'Q', 'random_state', 'shuffle_seed', 'layer']).to_csv(null_replicates_file, index=False)
+    pd.DataFrame([null_summary]).to_csv(null_summary_file, index=False)
+    if null_rows:
+        print(f"[{ts()}] {layer_name} | Null replicates retained: {null_summary['n_valid_nulls']} / {n_null_replicates}")
+    else:
+        print(f"[{ts()}] {layer_name} | Null replicates skipped or unavailable")
 
     q_values = rep_df['Q'].to_numpy()
     mean_q = float(np.mean(q_values))
@@ -163,10 +323,11 @@ def analyze_layer(layer_name: str, edges: pd.DataFrame, src_col: str, tgt_col: s
         'Q_best': best_quality,
         'replicate_stats': rep_stats,
         'membership': membership_df,
-        'null_summary': {'Q_obs': best_quality, 'Q_null_mean': np.nan, 'Q_null_sd': np.nan, 'z_score': np.nan, 'p_value': np.nan, 'n_valid_nulls': 0},
+        'null_summary': null_summary,
         'assignments_path': assign_path,
         'replicate_file': rep_file,
-        'null_file': null_file,
+        'null_file': null_summary_file,
+        'null_replicates_file': null_replicates_file,
     }
 
 
@@ -176,7 +337,10 @@ def main():
         'output_dir': 'results/phase_04/modularity',
         'log_dir': 'docs/phase_04/logs',
         'random_state': 42,
-        'n_replicates': 100,
+        'n_replicates': 200,
+        'n_null_replicates': 200,
+        'null_curveball_rounds': 500000,
+        'brim_iterations': 2000,
     }
 
     safe_dir(cfg['output_dir'])
@@ -185,6 +349,8 @@ def main():
     print("=== Phase 04 Step 03a: Modularity Analysis (scikit-network) ===")
     print("Timestamp:", ts())
     print(f"Configured replicates per layer: {cfg['n_replicates']}")
+    print(f"Configured null replicates per layer: {cfg['n_null_replicates']} (curveball rounds: {cfg['null_curveball_rounds']})")
+    print(f"BRIM iterations per run: {cfg['brim_iterations']}")
     print()
 
     if not os.path.isfile(cfg['edges_file']):
@@ -213,7 +379,10 @@ def main():
             t_col,
             cfg['output_dir'],
             random_state=cfg['random_state'],
-            n_replicates=cfg['n_replicates']
+            n_replicates=cfg['n_replicates'],
+            n_null_replicates=cfg['n_null_replicates'],
+            null_curveball_rounds=cfg['null_curveball_rounds'],
+            brim_iterations=cfg['brim_iterations']
         )
 
     summary_lines = [
@@ -232,6 +401,7 @@ def main():
             f"  z-score: {ns['z_score']} | p(one-tailed): {ns['p_value']}",
             f"  Modules saved: {res['assignments_path']}",
             f"  Replicate Q file: {res['replicate_file']}",
+            f"  Null replicates file: {res['null_replicates_file']}",
             f"  Null summary file: {res['null_file']}",
             ''
         ])
