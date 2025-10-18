@@ -1,0 +1,24 @@
+Phase 04 Step 04c: NODF Nestedness Analysis Summary (Modularity Integration)
+Timestamp: 2025-10-17 16:12:12 
+
+Production Layer:
+  Network: 134 × 93 (1.4% fill)
+  Observed NODF: 1.976 (rows: 2.915, cols: 1.037)
+  Null NODF: 2.575 ± 0.141
+  Z-score: -4.237 | p-value: 0.0000
+  Modules analyzed: 15
+  Results saved: results/phase_04/nodf/nodf_results_production.csv
+  Matrix plot: figures/network_topology/04c_nodf_matrix_production.pdf
+
+  Relationship plot: figures/network_topology/04c_modularity_nodf_relationship_production.pdf
+
+Utilization Layer:
+  Network: 173 × 93 (13.9% fill)
+  Observed NODF: 19.471 (rows: 23.117, cols: 15.826)
+  Null NODF: 25.716 ± 0.404
+  Z-score: -15.464 | p-value: 0.0000
+  Modules analyzed: 10
+  Results saved: results/phase_04/nodf/nodf_results_utilization.csv
+  Matrix plot: figures/network_topology/04c_nodf_matrix_utilization.pdf
+
+  Relationship plot: figures/network_topology/04c_modularity_nodf_relationship_utilization.pdf

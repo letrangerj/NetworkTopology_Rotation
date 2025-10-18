@@ -1,0 +1,17 @@
+figures/network_topology/step03_modularity/module_distribution.png
+Caption:
+生产层和利用层网络中模块大小的分布比较。上图显示生产层中各模块包含的功能组（FG）和pyoverdines（PYO）数量，下图显示利用层中的相应分布。生产层模块大小分布相对均衡，而利用层中模块3包含远多于其他模块的功能组，表明利用网络中存在一个主导模块。这种差异反映了生产与利用网络的不同组织原则，生产网络更倾向于形成多个相对独立的模块，而利用网络则存在一个包含大多数功能组的核心模块。
+
+figures/network_topology/step03_modularity/production_module_heatmap.png
+Caption:
+生产层模块间连接强度热图。热图显示了生产层中各模块之间的连接权重，对角线表示模块内部连接。模块内部连接强度高于模块间连接，特别是模块0、1和8表现出较高的内部连接强度。这种模式表明生产层网络具有明显的模块化结构，模块内功能组与pyoverdines之间的连接比模块间更为紧密，支持了生产网络中功能专一性的假说。
+
+figures/network_topology/step03_modularity/utilization_module_heatmap.png
+Caption:
+利用层模块间连接强度热图。与生产层相比，利用层模块间连接更为广泛，模块3与其他模块之间存在较多连接。模块8和模块3表现出较高的内部连接强度，但同时也与其他模块保持显著连接。这种模式表明利用层网络虽然存在模块结构，但模块间交叉连接更为普遍，反映了利用网络中受体介导的交叉利用模式和更广泛的资源共享。
+
+figures/network_topology/step03_modularity/module_comparison_heatmap.png
+Caption:
+生产层与利用层模块分配比较热图。热图显示了功能组和pyoverdines在生产层和利用层中被分配到相应模块的对应关系。对角线上的高值表明许多节点在两层网络中被分配到相同模块，但也有大量节点表现出不同的模块分配，特别是在生产层的模块8和利用层的模块3之间。这种差异揭示了生产与利用网络在模块组织上的不一致性，表明同一功能组或pyoverdine在生产与利用过程中可能扮演不同的生态角色。
+
+# End of file.

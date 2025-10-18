@@ -1,6 +1,0 @@
-Run start: 2025-10-14 01:07:41 CST
-Run end:   2025-10-14 03:40:49 CST
-Total elapsed (sec): 9188.61
-
-Layer production (approx) elapsed per-replicate (sec): unknown
-Layer utilization (approx) elapsed per-replicate (sec): unknown

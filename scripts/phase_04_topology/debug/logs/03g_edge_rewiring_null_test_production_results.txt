@@ -1,0 +1,20 @@
+Timestamp: 2025-10-17T14:56:01.842708
+=== Production 网络边重排 Null Test Results ===
+Network size: 134 x 93
+Edges: 175
+Density: 0.014043
+Observed Q (Q_obs): 0.857273
+
+Null model summary:
+  Null Q mean: 0.832903
+  Null Q sd: 0.010498
+  Z-score: 2.321522
+  P-value: 0.010000
+  BRIM restarts: 20, min_modules: 2
+  Null Q range: 0.802906 - 0.859918
+
+Parameters:
+  n_null_replicates: 100
+  target_swaps: 1000
+  swaps_per_edge: None
+  log_replicate_stats: False
