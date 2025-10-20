@@ -516,7 +516,7 @@ def main():
         'production_modularity_file': 'results/phase_04/modularity/module_assignments_production_sk.csv',
         'utilization_modularity_file': 'results/phase_04/modularity/module_assignments_utilization_sk.csv',
         'output_dir': 'results/phase_04/nodf',
-        'figures_dir': 'figures/network_topology',
+        'figures_dir': 'figures/network_topology/step04_nestedness',
         'log_dir': 'docs/phase_04/logs',
         'random_state': 42,
         'n_null_replicates': 100,
