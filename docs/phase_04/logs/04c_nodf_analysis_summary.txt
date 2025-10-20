@@ -1,5 +1,5 @@
 Phase 04 Step 04c: NODF Nestedness Analysis Summary (Modularity Integration)
-Timestamp: 2025-10-20 12:18:51 
+Timestamp: 2025-10-20 15:37:04 
 
 Production Layer:
   Network: 134 × 93 (1.4% fill)
@@ -7,10 +7,41 @@ Production Layer:
   Null NODF: 2.575 ± 0.141
   Z-score: -4.237 | p-value: 0.0000
   Modules analyzed: 15
-  Results saved: results/phase_04/nodf/nodf_results_production.csv
-  Matrix plot: figures/network_topology/step04_nestedness/04c_nodf_matrix_production.pdf
+  Results saved (observed metrics): results/phase_04/nodf/nodf_results_production.csv
+  Nestedness matrix: figures/network_topology/step04_nestedness/04c_nodf_matrix_production.pdf (png: figures/network_topology/step04_nestedness/04c_nodf_matrix_production.png)
+  Module-sorted matrix: figures/network_topology/step04_nestedness/04c_module_nestedness_matrix_production.pdf (png: figures/network_topology/step04_nestedness/04c_module_nestedness_matrix_production.png)
 
-  Relationship plot: figures/network_topology/step04_nestedness/04c_modularity_nodf_relationship_production.pdf
+  Modularity-NODF relationship plot: figures/network_topology/step04_nestedness/04c_modularity_nodf_relationship_production.pdf (png: figures/network_topology/step04_nestedness/04c_modularity_nodf_relationship_production.png)
+
+  Module breakdown (ModuleID: rows, cols, NODF, Fill%):
+    M0: 17 rows, 8 cols, NODF=35.90, Fill%=18.4
+    M1: 11 rows, 10 cols, NODF=21.98, Fill%=13.6
+    M2: 14 rows, 9 cols, NODF=23.85, Fill%=14.3
+    M3: 5 rows, 4 cols, NODF=0.00, Fill%=25.0
+    M4: 8 rows, 5 cols, NODF=0.00, Fill%=20.0
+    M5: 13 rows, 10 cols, NODF=35.02, Fill%=19.2
+    M6: 6 rows, 4 cols, NODF=0.00, Fill%=25.0
+    M7: 7 rows, 6 cols, NODF=16.67, Fill%=19.0
+    M8: 19 rows, 11 cols, NODF=11.48, Fill%=12.9
+    M9: 5 rows, 4 cols, NODF=0.00, Fill%=25.0
+    M10: 3 rows, 3 cols, NODF=0.00, Fill%=33.3
+    M11: 7 rows, 4 cols, NODF=0.00, Fill%=25.0
+    M12: 8 rows, 7 cols, NODF=0.00, Fill%=14.3
+    M13: 6 rows, 4 cols, NODF=0.00, Fill%=25.0
+    M14: 5 rows, 4 cols, NODF=0.00, Fill%=25.0
+  Module analysis CSV: results/phase_04/nodf/module_nodf_analysis_production.csv
+
+  Module-level summary:
+    Number of modules considered: 15
+    Module NODF mean ± sd: 9.661 ± 13.569
+    Observed overall NODF vs module mean: z = -0.566, p = 0.5712
+
+  Plot generation settings:
+    - Heatmap colormap: 'binary'
+    - Heatmap square: True; ticks suppressed
+    - Module annotations: drawn on same axis as heatmap (colored rectangles)
+    - Module color map: Matplotlib Set3
+    - Module annotation bar width: ~3% of heatmap width (adaptive)
 
 Utilization Layer:
   Network: 173 × 93 (13.9% fill)
@@ -18,7 +49,33 @@ Utilization Layer:
   Null NODF: 25.716 ± 0.404
   Z-score: -15.464 | p-value: 0.0000
   Modules analyzed: 10
-  Results saved: results/phase_04/nodf/nodf_results_utilization.csv
-  Matrix plot: figures/network_topology/step04_nestedness/04c_nodf_matrix_utilization.pdf
+  Results saved (observed metrics): results/phase_04/nodf/nodf_results_utilization.csv
+  Nestedness matrix: figures/network_topology/step04_nestedness/04c_nodf_matrix_utilization.pdf (png: figures/network_topology/step04_nestedness/04c_nodf_matrix_utilization.png)
+  Module-sorted matrix: figures/network_topology/step04_nestedness/04c_module_nestedness_matrix_utilization.pdf (png: figures/network_topology/step04_nestedness/04c_module_nestedness_matrix_utilization.png)
 
-  Relationship plot: figures/network_topology/step04_nestedness/04c_modularity_nodf_relationship_utilization.pdf
+  Modularity-NODF relationship plot: figures/network_topology/step04_nestedness/04c_modularity_nodf_relationship_utilization.pdf (png: figures/network_topology/step04_nestedness/04c_modularity_nodf_relationship_utilization.png)
+
+  Module breakdown (ModuleID: rows, cols, NODF, Fill%):
+    M0: 31 rows, 16 cols, NODF=85.71, Fill%=66.1
+    M1: 4 rows, 2 cols, NODF=0.00, Fill%=100.0
+    M2: 10 rows, 9 cols, NODF=0.00, Fill%=33.3
+    M3: 55 rows, 21 cols, NODF=84.09, Fill%=67.5
+    M4: 5 rows, 3 cols, NODF=0.00, Fill%=100.0
+    M5: 6 rows, 6 cols, NODF=0.00, Fill%=100.0
+    M6: 4 rows, 4 cols, NODF=0.00, Fill%=100.0
+    M7: 5 rows, 4 cols, NODF=0.00, Fill%=100.0
+    M8: 48 rows, 25 cols, NODF=54.58, Fill%=37.7
+    M9: 3 rows, 2 cols, NODF=0.00, Fill%=100.0
+  Module analysis CSV: results/phase_04/nodf/module_nodf_analysis_utilization.csv
+
+  Module-level summary:
+    Number of modules considered: 10
+    Module NODF mean ± sd: 22.438 ± 37.061
+    Observed overall NODF vs module mean: z = -0.080, p = 0.9362
+
+  Plot generation settings:
+    - Heatmap colormap: 'binary'
+    - Heatmap square: True; ticks suppressed
+    - Module annotations: drawn on same axis as heatmap (colored rectangles)
+    - Module color map: Matplotlib Set3
+    - Module annotation bar width: ~3% of heatmap width (adaptive)

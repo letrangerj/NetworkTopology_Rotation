@@ -5,3 +5,4 @@ data/interim/rds
 .lintr
 .qwen
 scripts/phase_04_topology/__pycache__
+.gitignore
