@@ -97,21 +97,20 @@ names(pyov_out_str) <- names(strd$pyov_util_out)
 
 
 # FG-level plots
-p_fg_in_hist <- plot_degree_hist(pyov_in_fg, "Pyoverdine Production In-Degree (FG level)", "in degree")
-p_fg_out_hist <- plot_degree_hist(pyov_out_fg, "Pyoverdine Utilization Out-Degree (FG level)", "out degree")
-p_fg_in_ccdf <- plot_ccdf(pyov_in_fg, "Pyoverdine Production In-Degree CCDF (FG)", "Production in-degree")
-p_fg_out_ccdf <- plot_ccdf(pyov_out_fg, "Pyoverdine Utilization Out-Degree CCDF (FG)", "Utilization out-degree")
-
+p_fg_in_hist <- plot_degree_hist(pyov_in_fg, "Siderophore Production In-Degree (FG level)", "in degree")
+p_fg_out_hist <- plot_degree_hist(pyov_out_fg, "Siderophore Utilization Out-Degree (FG level)", "out degree")
+p_fg_in_ccdf <- plot_ccdf(pyov_in_fg, "Siderophore Production In-Degree CCDF (FG)", "Production in-degree")
+p_fg_out_ccdf <- plot_ccdf(pyov_out_fg, "Siderophore Utilization Out-Degree CCDF (FG)", "Utilization out-degree")
 ggsave("figures/network_topology/pyov_degree/pyov_degree_in_fg.png", p_fg_in_hist, width = 6, height = 5)
 ggsave("figures/network_topology/pyov_degree/pyov_degree_out_fg.png", p_fg_out_hist, width = 6, height = 5)
 ggsave("figures/network_topology/pyov_degree/pyov_degree_in_fg_ccdf.png", p_fg_in_ccdf, width = 6, height = 5)
 ggsave("figures/network_topology/pyov_degree/pyov_degree_out_fg_ccdf.png", p_fg_out_ccdf, width = 6, height = 5)
 
 # STR-level plots
-p_str_in_hist <- plot_degree_hist(pyov_in_str, "Pyoverdine Production In-Degree (STR level)", "in degree")
-p_str_out_hist <- plot_degree_hist(pyov_out_str, "Pyoverdine Utilization Out-Degree (STR level)", "out degree")
-p_str_in_ccdf <- plot_ccdf(pyov_in_str, "Pyoverdine Production In-Degree CCDF (STR)", "Production in-degree")
-p_str_out_ccdf <- plot_ccdf(pyov_out_str, "Pyoverdine Utilization Out-Degree CCDF (STR)", "Utilization out-degree")
+p_str_in_hist <- plot_degree_hist(pyov_in_str, "Siderophore Production In-Degree (STR level)", "in degree")
+p_str_out_hist <- plot_degree_hist(pyov_out_str, "Siderophore Utilization Out-Degree (STR level)", "out degree")
+p_str_in_ccdf <- plot_ccdf(pyov_in_str, "Siderophore Production In-Degree CCDF (STR)", "Production in-degree")
+p_str_out_ccdf <- plot_ccdf(pyov_out_str, "Siderophore Utilization Out-Degree CCDF (STR)", "Utilization out-degree")
 
 ggsave("figures/network_topology/pyov_degree/pyov_degree_in_str.png", p_str_in_hist, width = 6, height = 5)
 ggsave("figures/network_topology/pyov_degree/pyov_degree_out_str.png", p_str_out_hist, width = 6, height = 5)
@@ -120,10 +119,10 @@ ggsave("figures/network_topology/pyov_degree/pyov_degree_out_str_ccdf.png", p_st
 
 
 # Combined figure: FG CCDF in/out side-by-side (for manuscript panels B/C)
-combined_fg_ccdf <- (p_fg_in_ccdf + p_fg_out_ccdf) + plot_layout(ncol = 2) + plot_annotation(title = "Pyoverdine Degree CCDFs (FG level)")
+combined_fg_ccdf <- (p_fg_in_ccdf + p_fg_out_ccdf) + plot_layout(ncol = 2) + plot_annotation(title = "Siderophore Degree CCDFs (FG level)")
 ggsave("figures/network_topology/pyov_degree/pyov_degree_ccdf_fg_combined.png", combined_fg_ccdf, width = 12, height = 5)
 
-combined_str_ccdf <- (p_str_in_ccdf + p_str_out_ccdf) + plot_layout(ncol = 2) + plot_annotation(title = "Pyoverdine Degree CCDFs (STR level)")
+combined_str_ccdf <- (p_str_in_ccdf + p_str_out_ccdf) + plot_layout(ncol = 2) + plot_annotation(title = "Siderophore Degree CCDFs (STR level)")
 ggsave("figures/network_topology/pyov_degree/pyov_degree_ccdf_str_combined.png", combined_str_ccdf, width = 12, height = 5)
 
 
@@ -141,4 +140,4 @@ summary_df <- data.frame(
 safe_dir_create("results/phase_04/degree")
 write.csv(summary_df, "results/phase_04/degree/pyov_degree_summary.csv", row.names = FALSE)
 
-cat("Pyoverdine degree distribution figures and summary saved under figures/network_topology/pyov_degree and results/phase_04/degree/pyov_degree_summary.csv\n")
+cat("Siderophore degree distribution figures and summary saved under figures/network_topology/pyov_degree and results/phase_04/degree/pyov_degree_summary.csv\n")

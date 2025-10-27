@@ -55,7 +55,7 @@ make_scatter <- function(df, x_col, y_col, x_label, y_label, title, subtitle, fi
     )
 
   outfile <- file.path(output_dir, filename)
-  ggsave(outfile, plot, width = 7, height = 7, dpi = 300)
+  ggsave(outfile, plot, width = 7, height = 5, dpi = 300)
   message("Saved syn/rec scatter: ", outfile)
 }
 

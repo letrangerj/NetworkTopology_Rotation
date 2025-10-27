@@ -40,7 +40,7 @@ fg <- read.csv(data_fg, stringsAsFactors = FALSE)
 # Build vertex tables
 vertex_pyov <- data.frame(
   name = pyov$node_id,
-  type = "pyov",
+  type = "siderophore",
   color = "orange", # default pyov color
   size = pmax(2, sqrt(pyov$matrix_index) * 1.4),
   stringsAsFactors = FALSE
@@ -146,7 +146,7 @@ legend_labels <- c(
   "FG: Multi-receptor producer",
   "FG: Producer-only (no utilization)",
   "FG: Nonproducer",
-  "Pyoverdine (lock-key) group"
+  "Siderophore (lock-key) group"
 )
 legend_shapes <- c(21, 21, 21, 21, 21, 23)
 legend_fills <- c("green", "magenta", "blue", "purple", "red", "orange")
@@ -197,18 +197,18 @@ p <- ggplot() +
     fill = node_df$color[node_df$type == "fg"],
     alpha = 0.9
   ) +
-  # nodes (pyov) drawn AFTER edges
+  # nodes (siderophore) drawn AFTER edges
   geom_point(
-    data = node_df[node_df$type == "pyov", , drop = FALSE],
+    data = node_df[node_df$type == "siderophore", , drop = FALSE],
     aes(x = x, y = y, size = size),
     shape = 23, stroke = 0.2, colour = "black",
-    fill = node_df$color[node_df$type == "pyov"],
+    fill = node_df$color[node_df$type == "siderophore"],
     alpha = 0.95
   ) +
   scale_size_continuous(range = c(2, 12), guide = guide_legend(title = "Node Size")) +
   labs(
-    title = "Pyoverdine-Mediated Iron Interaction Network",
-    subtitle = "Bipartite: Functional Groups ↔ Pyoverdine Groups\nEdge direction: FG → PYO (production), PYO → FG (utilization)",
+    title = "Siderophore-Mediated Iron Interaction Network",
+    subtitle = "Bipartite: Functional Groups ↔ Siderophore Groups\nEdge direction: FG → SID (production), SID → FG (utilization)",
     caption = "Node sizes ∝ strain counts / usage"
   ) +
   theme_minimal(base_size = 12) +

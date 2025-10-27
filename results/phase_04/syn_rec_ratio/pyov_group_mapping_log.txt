@@ -1,0 +1,1 @@
+WARNING: 67 pyoverdines had no assigned pair via receptor mapping. They will be left with NA pair_index.
